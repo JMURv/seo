@@ -1,0 +1,38 @@
+syntax = "proto3";
+package seo;
+option go_package = "github.com/JMURv/par-pro/api/pb/seo";
+import "google/protobuf/timestamp.proto";
+
+message Empty {}
+
+message SEOMsg {
+  uint64 id = 1;
+  string title = 2;
+  string description = 3;
+  string keywords = 4;
+  string OGTitle = 5;
+  string OGDescription = 6;
+  string OGImage = 7;
+  string obj_name = 8;
+  string obj_pk = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+service SEO {
+  rpc GetSEO(GetReq) returns (SEOMsg);
+  rpc CreateSEO(CreateAndUpdateReq) returns (SEOMsg);
+  rpc UpdateSEO(CreateAndUpdateReq) returns (Empty);
+  rpc DeleteSEO(GetReq) returns (Empty);
+}
+
+message GetReq {
+  string name = 1;
+  string pk = 2;
+}
+
+message CreateAndUpdateReq {
+  string name = 1;
+  string pk = 2;
+  SEOMsg seo = 3;
+}

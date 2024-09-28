@@ -1,0 +1,5 @@
+.idea
+*.config.yaml
+!example.config.yaml
+
+cov.out
