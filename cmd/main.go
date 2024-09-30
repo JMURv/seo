@@ -74,6 +74,9 @@ func main() {
 
 		cancel()
 		cache.Close()
+		if err := dscvry.Deregister(); err != nil {
+			zap.L().Debug("Error deregistering service", zap.Error(err))
+		}
 		if err := h.Close(); err != nil {
 			zap.L().Debug("Error closing handler", zap.Error(err))
 		}

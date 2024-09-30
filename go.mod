@@ -5,7 +5,6 @@ go 1.23.1
 require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/goccy/go-json v0.10.3
-	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.0.1
 	github.com/opentracing/opentracing-go v1.2.0
@@ -14,6 +13,7 @@ require (
 	go.uber.org/zap v1.27.0
 	google.golang.org/grpc v1.67.0
 	google.golang.org/protobuf v1.34.2
+	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/postgres v1.5.9
 	gorm.io/gorm v1.25.12
 )

@@ -38,8 +38,8 @@ func (c *Cache) Close() {
 	}
 }
 
-func (c *Cache) GetToStruct(ctx context.Context, key string, dest any) error {
-	const op = "GetStructFromCache"
+func (c *Cache) Get(ctx context.Context, key string, dest any) error {
+	const op = "Get"
 	span, _ := opentracing.StartSpanFromContext(ctx, op)
 	defer span.Finish()
 
@@ -62,7 +62,7 @@ func (c *Cache) GetToStruct(ctx context.Context, key string, dest any) error {
 }
 
 func (c *Cache) Set(ctx context.Context, t time.Duration, key string, val any) error {
-	const op = "SetToCache"
+	const op = "Set"
 	span, _ := opentracing.StartSpanFromContext(ctx, op)
 	defer span.Finish()
 
@@ -76,7 +76,7 @@ func (c *Cache) Set(ctx context.Context, t time.Duration, key string, val any) e
 }
 
 func (c *Cache) Delete(ctx context.Context, key string) error {
-	const op = "DeleteFromCache"
+	const op = "Delete"
 	span, _ := opentracing.StartSpanFromContext(ctx, op)
 	defer span.Finish()
 

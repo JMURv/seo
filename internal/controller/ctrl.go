@@ -12,11 +12,10 @@ type appRepo interface {
 type Discovery interface {
 	Register() error
 	Deregister() error
-	FindServiceByName(ctx context.Context, name string) (string, error)
 }
 
 type CacheRepo interface {
-	GetToStruct(ctx context.Context, key string, dest any) error
+	Get(ctx context.Context, key string, dest any) error
 	Set(ctx context.Context, t time.Duration, key string, val any) error
 	Delete(ctx context.Context, key string) error
 	InvalidateKeysByPattern(ctx context.Context, pattern string) error

@@ -16,8 +16,8 @@ import (
 )
 
 func RegisterSEORoutes(r *mux.Router, h *Handler) {
+	r.HandleFunc("/api/seo", middlewareFunc(h.CreateSEO, h.authMiddleware)).Methods(http.MethodPost)
 	r.HandleFunc("/api/seo/{name}/{pk}", h.GetSEO).Methods(http.MethodGet)
-	r.HandleFunc("/api/seo/{name}/{pk}", middlewareFunc(h.CreateSEO, h.authMiddleware)).Methods(http.MethodPost)
 	r.HandleFunc("/api/seo/{name}/{pk}", middlewareFunc(h.UpdateSEO, h.authMiddleware)).Methods(http.MethodPut)
 	r.HandleFunc("/api/seo/{name}/{pk}", middlewareFunc(h.DeleteSEO, h.authMiddleware)).Methods(http.MethodDelete)
 }
@@ -61,17 +61,6 @@ func (h *Handler) CreateSEO(w http.ResponseWriter, r *http.Request) {
 		metrics.ObserveRequest(time.Since(s), c, op)
 	}()
 
-	name, pk := mux.Vars(r)["name"], mux.Vars(r)["pk"]
-	if name == "" || pk == "" {
-		c = http.StatusBadRequest
-		zap.L().Debug(
-			"failed to decode request",
-			zap.String("op", op), zap.String("name", name), zap.String("pk", pk),
-		)
-		utils.ErrResponse(w, c, hdl.ErrDecodeRequest)
-		return
-	}
-
 	req := &model.SEO{}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 		c = http.StatusBadRequest
@@ -87,7 +76,7 @@ func (h *Handler) CreateSEO(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.ctrl.UpdateSEO(r.Context(), name, pk, req)
+	err := h.ctrl.UpdateSEO(r.Context(), req)
 	if err != nil && errors.Is(err, ctrl.ErrAlreadyExists) {
 		c = http.StatusNotFound
 		utils.ErrResponse(w, c, err)
@@ -134,7 +123,7 @@ func (h *Handler) UpdateSEO(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.ctrl.UpdateSEO(r.Context(), name, pk, req)
+	err := h.ctrl.UpdateSEO(r.Context(), req)
 	if err != nil && errors.Is(err, ctrl.ErrNotFound) {
 		c = http.StatusNotFound
 		utils.ErrResponse(w, c, err)

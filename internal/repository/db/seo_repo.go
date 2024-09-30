@@ -15,7 +15,7 @@ func (r *Repository) GetSEO(ctx context.Context, name, pk string) (*model.SEO, e
 	defer span.Finish()
 
 	res := &model.SEO{}
-	err := r.conn.Where("obj_name=? AND obj_pk=?", name, pk).First(res).Error
+	err := r.conn.Where("obj_name=? AND objpk=?", name, pk).First(res).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, repo.ErrNotFound
 	} else if err != nil {
@@ -25,12 +25,12 @@ func (r *Repository) GetSEO(ctx context.Context, name, pk string) (*model.SEO, e
 	return res, nil
 }
 
-func (r *Repository) CreateSEO(ctx context.Context, name, pk string, req *model.SEO) (*model.SEO, error) {
+func (r *Repository) CreateSEO(ctx context.Context, req *model.SEO) (*model.SEO, error) {
 	const op = "seo.CreateSEO.repo"
 	span, _ := opentracing.StartSpanFromContext(ctx, op)
 	defer span.Finish()
 
-	res, err := r.GetSEO(ctx, name, pk)
+	_, err := r.GetSEO(ctx, req.OBJName, req.OBJPK)
 	if err == nil {
 		return nil, repo.ErrAlreadyExists
 	}
@@ -38,15 +38,15 @@ func (r *Repository) CreateSEO(ctx context.Context, name, pk string, req *model.
 	if err := r.conn.Save(req).Error; err != nil {
 		return nil, err
 	}
-	return res, nil
+	return req, nil
 }
 
-func (r *Repository) UpdateSEO(ctx context.Context, name, pk string, req *model.SEO) (*model.SEO, error) {
+func (r *Repository) UpdateSEO(ctx context.Context, req *model.SEO) (*model.SEO, error) {
 	const op = "seo.UpdateSEO.repo"
 	span, _ := opentracing.StartSpanFromContext(ctx, op)
 	defer span.Finish()
 
-	res, err := r.GetSEO(ctx, name, pk)
+	res, err := r.GetSEO(ctx, req.OBJName, req.OBJPK)
 	if err != nil {
 		return nil, err
 	}
