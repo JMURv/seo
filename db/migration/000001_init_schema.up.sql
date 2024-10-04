@@ -1,6 +1,5 @@
 -- pages
-CREATE TABLE IF NOT EXISTS pages
-(
+CREATE TABLE IF NOT EXISTS pages (
     slug VARCHAR(255) PRIMARY KEY,
     title VARCHAR(255),
     href VARCHAR(255),
@@ -10,8 +9,7 @@ CREATE TABLE IF NOT EXISTS pages
 );
 
 -- SEO
-CREATE TABLE IF NOT EXISTS seo
-(
+CREATE TABLE IF NOT EXISTS seo (
     id             serial PRIMARY KEY,
     title          VARCHAR(255) NOT NULL,
     description    TEXT,

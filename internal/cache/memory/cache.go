@@ -2,8 +2,8 @@ package memory
 
 import (
 	"context"
-	errs "github.com/JMURv/par-pro-seo/internal/cache"
-	md "github.com/JMURv/par-pro-seo/pkg/model"
+	errs "github.com/JMURv/seo-svc/internal/cache"
+	md "github.com/JMURv/seo-svc/pkg/model"
 	"sync"
 	"time"
 )

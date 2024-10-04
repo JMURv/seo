@@ -4,6 +4,9 @@ option go_package = "github.com/JMURv/par-pro/api/pb/seo";
 import "google/protobuf/timestamp.proto";
 
 message EmptySEO {}
+message uuid64SEO {
+  uint64 id = 1;
+}
 
 message SEOMsg {
   uint64 id = 1;
@@ -21,7 +24,7 @@ message SEOMsg {
 
 service SEO {
   rpc GetSEO(GetSEOReq) returns (SEOMsg);
-  rpc CreateSEO(SEOMsg) returns (EmptySEO);
+  rpc CreateSEO(SEOMsg) returns (uuid64SEO);
   rpc UpdateSEO(SEOMsg) returns (EmptySEO);
   rpc DeleteSEO(GetSEOReq) returns (EmptySEO);
 }

@@ -2,8 +2,8 @@ package memory
 
 import (
 	"context"
-	repo "github.com/JMURv/par-pro-seo/internal/repository"
-	"github.com/JMURv/par-pro-seo/pkg/model"
+	repo "github.com/JMURv/seo-svc/internal/repository"
+	"github.com/JMURv/seo-svc/pkg/model"
 	"github.com/opentracing/opentracing-go"
 )
 

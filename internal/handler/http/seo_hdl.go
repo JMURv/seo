@@ -2,24 +2,40 @@ package http
 
 import (
 	"errors"
-	ctrl "github.com/JMURv/par-pro-seo/internal/controller"
-	hdl "github.com/JMURv/par-pro-seo/internal/handler"
-	metrics "github.com/JMURv/par-pro-seo/internal/metrics/prometheus"
-	"github.com/JMURv/par-pro-seo/internal/validation"
-	"github.com/JMURv/par-pro-seo/pkg/model"
-	utils "github.com/JMURv/par-pro-seo/pkg/utils/http"
+	ctrl "github.com/JMURv/seo-svc/internal/controller"
+	hdl "github.com/JMURv/seo-svc/internal/handler"
+	metrics "github.com/JMURv/seo-svc/internal/metrics/prometheus"
+	"github.com/JMURv/seo-svc/internal/validation"
+	"github.com/JMURv/seo-svc/pkg/model"
+	utils "github.com/JMURv/seo-svc/pkg/utils/http"
 	"github.com/goccy/go-json"
-	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"net/http"
 	"time"
 )
 
-func RegisterSEORoutes(r *mux.Router, h *Handler) {
-	r.HandleFunc("/api/seo", middlewareFunc(h.CreateSEO, h.authMiddleware)).Methods(http.MethodPost)
-	r.HandleFunc("/api/seo/{name}/{pk}", h.GetSEO).Methods(http.MethodGet)
-	r.HandleFunc("/api/seo/{name}/{pk}", middlewareFunc(h.UpdateSEO, h.authMiddleware)).Methods(http.MethodPut)
-	r.HandleFunc("/api/seo/{name}/{pk}", middlewareFunc(h.DeleteSEO, h.authMiddleware)).Methods(http.MethodDelete)
+func RegisterSEORoutes(mux *http.ServeMux, h *Handler) {
+	mux.HandleFunc("/api/seo", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			h.CreateSEO(w, r)
+		default:
+			utils.ErrResponse(w, http.StatusMethodNotAllowed, hdl.ErrMethodNotAllowed)
+		}
+	})
+
+	mux.HandleFunc("/api/seo/", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			h.GetSEO(w, r)
+		case http.MethodPut:
+			h.UpdateSEO(w, r)
+		case http.MethodDelete:
+			h.DeleteSEO(w, r)
+		default:
+			utils.ErrResponse(w, http.StatusMethodNotAllowed, hdl.ErrMethodNotAllowed)
+		}
+	})
 }
 
 func (h *Handler) GetSEO(w http.ResponseWriter, r *http.Request) {
@@ -29,12 +45,13 @@ func (h *Handler) GetSEO(w http.ResponseWriter, r *http.Request) {
 		metrics.ObserveRequest(time.Since(s), c, op)
 	}()
 
-	name, pk := mux.Vars(r)["name"], mux.Vars(r)["pk"]
+	name, pk := utils.ParseURLParams(r.URL.Path)
 	if name == "" || pk == "" {
 		c = http.StatusBadRequest
 		zap.L().Debug(
-			"failed to decode request",
-			zap.String("op", op), zap.String("objName", name), zap.String("objPK", pk),
+			"failed to decode request, missing name or pk",
+			zap.String("op", op),
+			zap.String("name", name), zap.String("pk", pk),
 		)
 		utils.ErrResponse(w, c, hdl.ErrDecodeRequest)
 		return
@@ -55,7 +72,7 @@ func (h *Handler) GetSEO(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) CreateSEO(w http.ResponseWriter, r *http.Request) {
-	s, c := time.Now(), http.StatusOK
+	s, c := time.Now(), http.StatusCreated
 	const op = "seo.CreateSEO.handler"
 	defer func() {
 		metrics.ObserveRequest(time.Since(s), c, op)
@@ -76,9 +93,9 @@ func (h *Handler) CreateSEO(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.ctrl.UpdateSEO(r.Context(), req)
+	res, err := h.ctrl.CreateSEO(r.Context(), req)
 	if err != nil && errors.Is(err, ctrl.ErrAlreadyExists) {
-		c = http.StatusNotFound
+		c = http.StatusConflict
 		utils.ErrResponse(w, c, err)
 		return
 	} else if err != nil {
@@ -87,7 +104,7 @@ func (h *Handler) CreateSEO(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.SuccessResponse(w, c, "OK")
+	utils.SuccessResponse(w, c, res)
 }
 
 func (h *Handler) UpdateSEO(w http.ResponseWriter, r *http.Request) {
@@ -97,12 +114,13 @@ func (h *Handler) UpdateSEO(w http.ResponseWriter, r *http.Request) {
 		metrics.ObserveRequest(time.Since(s), c, op)
 	}()
 
-	name, pk := mux.Vars(r)["name"], mux.Vars(r)["pk"]
+	name, pk := utils.ParseURLParams(r.URL.Path)
 	if name == "" || pk == "" {
 		c = http.StatusBadRequest
 		zap.L().Debug(
-			"failed to decode request",
-			zap.String("op", op), zap.String("name", name), zap.String("pk", pk),
+			"failed to decode request, missing name or pk",
+			zap.String("op", op),
+			zap.String("name", name), zap.String("pk", pk),
 		)
 		utils.ErrResponse(w, c, hdl.ErrDecodeRequest)
 		return
@@ -138,18 +156,19 @@ func (h *Handler) UpdateSEO(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) DeleteSEO(w http.ResponseWriter, r *http.Request) {
-	s, c := time.Now(), http.StatusOK
+	s, c := time.Now(), http.StatusNoContent
 	const op = "seo.DeleteSEO.handler"
 	defer func() {
 		metrics.ObserveRequest(time.Since(s), c, op)
 	}()
 
-	name, pk := mux.Vars(r)["name"], mux.Vars(r)["pk"]
+	name, pk := utils.ParseURLParams(r.URL.Path)
 	if name == "" || pk == "" {
 		c = http.StatusBadRequest
 		zap.L().Debug(
-			"failed to decode request",
-			zap.String("op", op), zap.String("name", name), zap.String("pk", pk),
+			"failed to decode request, missing name or pk",
+			zap.String("op", op),
+			zap.String("name", name), zap.String("pk", pk),
 		)
 		utils.ErrResponse(w, c, hdl.ErrDecodeRequest)
 		return

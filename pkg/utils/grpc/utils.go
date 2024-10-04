@@ -1,8 +1,8 @@
 package utils
 
 import (
-	pb "github.com/JMURv/par-pro-seo/api/pb"
-	md "github.com/JMURv/par-pro-seo/pkg/model"
+	pb "github.com/JMURv/seo-svc/api/pb"
+	md "github.com/JMURv/seo-svc/pkg/model"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 

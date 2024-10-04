@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	repo "github.com/JMURv/par-pro-seo/internal/repository"
-	"github.com/JMURv/par-pro-seo/pkg/consts"
-	"github.com/JMURv/par-pro-seo/pkg/model"
+	repo "github.com/JMURv/seo-svc/internal/repository"
+	"github.com/JMURv/seo-svc/pkg/consts"
+	"github.com/JMURv/seo-svc/pkg/model"
 	"github.com/opentracing/opentracing-go"
 	"go.uber.org/zap"
 )
@@ -16,8 +16,8 @@ const SEOKey = "SEO:%v:%v"
 
 type SEORepo interface {
 	GetSEO(ctx context.Context, name, pk string) (*model.SEO, error)
-	CreateSEO(ctx context.Context, req *model.SEO) (*model.SEO, error)
-	UpdateSEO(ctx context.Context, req *model.SEO) (*model.SEO, error)
+	CreateSEO(ctx context.Context, req *model.SEO) (uint64, error)
+	UpdateSEO(ctx context.Context, req *model.SEO) error
 	DeleteSEO(ctx context.Context, name, pk string) error
 }
 
@@ -28,8 +28,8 @@ func (c *Controller) GetSEO(ctx context.Context, name, pk string) (*model.SEO, e
 	defer span.Finish()
 
 	cached := &model.SEO{}
-	cacheKey := fmt.Sprintf(SEOKey, name, pk)
-	if err := c.cache.Get(ctx, cacheKey, cached); err == nil {
+	key := fmt.Sprintf(SEOKey, name, pk)
+	if err := c.cache.Get(ctx, key, cached); err == nil {
 		return cached, nil
 	}
 
@@ -51,7 +51,7 @@ func (c *Controller) GetSEO(ctx context.Context, name, pk string) (*model.SEO, e
 	}
 
 	if bytes, err := json.Marshal(res); err == nil {
-		if err = c.cache.Set(ctx, consts.DefaultCacheTime, cacheKey, bytes); err != nil {
+		if err = c.cache.Set(ctx, consts.DefaultCacheTime, key, bytes); err != nil {
 			zap.L().Debug(
 				"failed to set to cache",
 				zap.Error(err), zap.String("op", op),
@@ -62,7 +62,7 @@ func (c *Controller) GetSEO(ctx context.Context, name, pk string) (*model.SEO, e
 	return res, nil
 }
 
-func (c *Controller) CreateSEO(ctx context.Context, req *model.SEO) error {
+func (c *Controller) CreateSEO(ctx context.Context, req *model.SEO) (uint64, error) {
 	const op = "seo.CreateSEO.ctrl"
 	span, _ := opentracing.StartSpanFromContext(ctx, op)
 	ctx = opentracing.ContextWithSpan(ctx, span)
@@ -75,26 +75,17 @@ func (c *Controller) CreateSEO(ctx context.Context, req *model.SEO) error {
 			zap.Error(err), zap.String("op", op),
 			zap.String("name", req.OBJName), zap.String("pk", req.OBJPK),
 		)
-		return ErrAlreadyExists
+		return 0, ErrAlreadyExists
 	} else if err != nil {
 		zap.L().Debug(
 			"failed to create seo",
 			zap.Error(err), zap.String("op", op),
 			zap.String("name", req.OBJName), zap.String("pk", req.OBJPK),
 		)
-		return err
+		return 0, err
 	}
 
-	if bytes, err := json.Marshal(res); err == nil {
-		if err = c.cache.Set(ctx, consts.DefaultCacheTime, fmt.Sprintf(SEOKey, req.OBJName, req.OBJPK), bytes); err != nil {
-			zap.L().Debug(
-				"failed to set to cache",
-				zap.Error(err), zap.String("op", op),
-				zap.String("name", req.OBJName), zap.String("pk", req.OBJPK),
-			)
-		}
-	}
-	return nil
+	return res, nil
 }
 
 func (c *Controller) UpdateSEO(ctx context.Context, req *model.SEO) error {
@@ -103,8 +94,7 @@ func (c *Controller) UpdateSEO(ctx context.Context, req *model.SEO) error {
 	ctx = opentracing.ContextWithSpan(ctx, span)
 	defer span.Finish()
 
-	key := fmt.Sprintf(SEOKey, req.OBJName, req.OBJPK)
-	res, err := c.repo.UpdateSEO(ctx, req)
+	err := c.repo.UpdateSEO(ctx, req)
 	if err != nil && errors.Is(err, repo.ErrNotFound) {
 		zap.L().Debug(
 			"failed to find seo",
@@ -121,14 +111,12 @@ func (c *Controller) UpdateSEO(ctx context.Context, req *model.SEO) error {
 		return err
 	}
 
-	if bytes, err := json.Marshal(res); err == nil {
-		if err = c.cache.Set(ctx, consts.DefaultCacheTime, key, bytes); err != nil {
-			zap.L().Debug(
-				"failed to set to cache",
-				zap.Error(err), zap.String("op", op),
-				zap.String("name", req.OBJName), zap.String("pk", req.OBJPK),
-			)
-		}
+	if err := c.cache.Delete(ctx, fmt.Sprintf(SEOKey, req.OBJName, req.OBJPK)); err != nil {
+		zap.L().Debug(
+			"failed to delete from cache",
+			zap.Error(err), zap.String("op", op),
+			zap.String("name", req.OBJName), zap.String("pk", req.OBJPK),
+		)
 	}
 	return nil
 }

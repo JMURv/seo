@@ -27,8 +27,8 @@ tasks:
   mocks:
     desc: Generate mocks
     cmds:
-      - mockgen -source="./internal/hdl/grpc/grpc.go" -destination="mocks/mock_grpc_ctrl.go" -package=mocks
-      - mockgen -source="./internal/ctrl/ctrl.go" -destination="mocks/mock_repos.go" -package=mocks
+      - mockgen -source="./internal/handler/hdl.go" -destination="mocks/mock_ctrl.go" -package=mocks
+      - mockgen -source="./internal/controller/ctrl.go" -destination="mocks/mock_repos.go" -package=mocks
 
   build:
     desc: Build app

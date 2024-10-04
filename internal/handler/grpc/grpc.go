@@ -2,9 +2,9 @@ package grpc
 
 import (
 	"fmt"
-	pb "github.com/JMURv/par-pro-seo/api/pb"
-	ctrl "github.com/JMURv/par-pro-seo/internal/controller"
-	metrics "github.com/JMURv/par-pro-seo/internal/metrics/prometheus"
+	pb "github.com/JMURv/seo-svc/api/pb"
+	"github.com/JMURv/seo-svc/internal/handler"
+	metrics "github.com/JMURv/seo-svc/internal/metrics/prometheus"
 	pm "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
@@ -18,10 +18,10 @@ type Handler struct {
 	pb.SEOServer
 	srv  *grpc.Server
 	hsrv *health.Server
-	ctrl *ctrl.Controller
+	ctrl handler.SEOCtrl
 }
 
-func New(ctrl *ctrl.Controller) *Handler {
+func New(ctrl handler.SEOCtrl) *Handler {
 	srv := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
 			metrics.SrvMetrics.UnaryServerInterceptor(pm.WithExemplarFromContext(metrics.Exemplar)),

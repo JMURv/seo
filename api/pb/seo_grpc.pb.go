@@ -30,7 +30,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SEOClient interface {
 	GetSEO(ctx context.Context, in *GetSEOReq, opts ...grpc.CallOption) (*SEOMsg, error)
-	CreateSEO(ctx context.Context, in *SEOMsg, opts ...grpc.CallOption) (*EmptySEO, error)
+	CreateSEO(ctx context.Context, in *SEOMsg, opts ...grpc.CallOption) (*Uuid64SEO, error)
 	UpdateSEO(ctx context.Context, in *SEOMsg, opts ...grpc.CallOption) (*EmptySEO, error)
 	DeleteSEO(ctx context.Context, in *GetSEOReq, opts ...grpc.CallOption) (*EmptySEO, error)
 }
@@ -53,9 +53,9 @@ func (c *sEOClient) GetSEO(ctx context.Context, in *GetSEOReq, opts ...grpc.Call
 	return out, nil
 }
 
-func (c *sEOClient) CreateSEO(ctx context.Context, in *SEOMsg, opts ...grpc.CallOption) (*EmptySEO, error) {
+func (c *sEOClient) CreateSEO(ctx context.Context, in *SEOMsg, opts ...grpc.CallOption) (*Uuid64SEO, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(EmptySEO)
+	out := new(Uuid64SEO)
 	err := c.cc.Invoke(ctx, SEO_CreateSEO_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -88,7 +88,7 @@ func (c *sEOClient) DeleteSEO(ctx context.Context, in *GetSEOReq, opts ...grpc.C
 // for forward compatibility.
 type SEOServer interface {
 	GetSEO(context.Context, *GetSEOReq) (*SEOMsg, error)
-	CreateSEO(context.Context, *SEOMsg) (*EmptySEO, error)
+	CreateSEO(context.Context, *SEOMsg) (*Uuid64SEO, error)
 	UpdateSEO(context.Context, *SEOMsg) (*EmptySEO, error)
 	DeleteSEO(context.Context, *GetSEOReq) (*EmptySEO, error)
 	mustEmbedUnimplementedSEOServer()
@@ -104,7 +104,7 @@ type UnimplementedSEOServer struct{}
 func (UnimplementedSEOServer) GetSEO(context.Context, *GetSEOReq) (*SEOMsg, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSEO not implemented")
 }
-func (UnimplementedSEOServer) CreateSEO(context.Context, *SEOMsg) (*EmptySEO, error) {
+func (UnimplementedSEOServer) CreateSEO(context.Context, *SEOMsg) (*Uuid64SEO, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateSEO not implemented")
 }
 func (UnimplementedSEOServer) UpdateSEO(context.Context, *SEOMsg) (*EmptySEO, error) {

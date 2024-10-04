@@ -2,7 +2,7 @@ package jaeger
 
 import (
 	"context"
-	"github.com/JMURv/par-pro-seo/pkg/config"
+	"github.com/JMURv/seo-svc/pkg/config"
 	"github.com/opentracing/opentracing-go"
 	jaeger "github.com/uber/jaeger-client-go/config"
 	"go.uber.org/zap"

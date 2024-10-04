@@ -4,9 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	controller "github.com/JMURv/par-pro-seo/internal/controller"
-	utils "github.com/JMURv/par-pro-seo/pkg/utils/http"
-	"github.com/gorilla/mux"
+	"github.com/JMURv/seo-svc/internal/handler"
+	utils "github.com/JMURv/seo-svc/pkg/utils/http"
 	"github.com/opentracing/opentracing-go"
 	"go.uber.org/zap"
 	"net/http"
@@ -16,24 +15,26 @@ import (
 
 type Handler struct {
 	srv  *http.Server
-	ctrl *controller.Controller
+	ctrl handler.SEOCtrl
 }
 
-func New(ctrl *controller.Controller) *Handler {
+func New(ctrl handler.SEOCtrl) *Handler {
 	return &Handler{
 		ctrl: ctrl,
 	}
 }
 
 func (h *Handler) Start(port int) {
-	r := mux.NewRouter()
-	r.Use(h.tracingMiddleware)
+	mux := http.NewServeMux()
+	//r.Use(h.tracingMiddleware)
 
-	r.HandleFunc("/api/health-check", h.healthCheck).Methods(http.MethodGet)
-	RegisterSEORoutes(r, h)
+	RegisterSEORoutes(mux, h)
+	mux.HandleFunc("/api/health-check", func(w http.ResponseWriter, r *http.Request) {
+		utils.SuccessResponse(w, http.StatusOK, "OK")
+	})
 
 	h.srv = &http.Server{
-		Handler:      r,
+		Handler:      mux,
 		Addr:         fmt.Sprintf(":%v", port),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,

@@ -1,1 +1,1 @@
-[![Go Coverage](https://github.com/JMURv/par-pro-seo/wiki/coverage.svg)](https://raw.githack.com/wiki/JMURv/sso/coverage.html)
+[![Go Coverage](https://github.com/JMURv/seo-svc/wiki/coverage.svg)](https://raw.githack.com/wiki/JMURv/sso/coverage.html)

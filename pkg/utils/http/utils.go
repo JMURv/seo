@@ -2,8 +2,10 @@ package utils
 
 import (
 	"encoding/json"
-	md "github.com/JMURv/par-pro-seo/pkg/model"
+	md "github.com/JMURv/seo-svc/pkg/model"
+	"go.uber.org/zap"
 	"net/http"
+	"strings"
 )
 
 type Response struct {
@@ -42,4 +44,20 @@ func ErrResponse(w http.ResponseWriter, statusCode int, err error) {
 	json.NewEncoder(w).Encode(&ErrorResponse{
 		Error: err.Error(),
 	})
+}
+
+func ParseURLParams(path string) (string, string) {
+	parts := strings.Split(
+		strings.TrimPrefix(path, "/api/seo/"), "/",
+	)
+
+	if len(parts) != 2 {
+		zap.L().Debug(
+			"failed to decode request, incorrect path format",
+			zap.String("path", path),
+		)
+		return "", ""
+	}
+
+	return parts[0], parts[1]
 }

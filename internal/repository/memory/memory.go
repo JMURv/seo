@@ -1,7 +1,7 @@
 package memory
 
 import (
-	"github.com/JMURv/par-pro-seo/pkg/model"
+	"github.com/JMURv/seo-svc/pkg/model"
 	"sync"
 )
 

@@ -3,12 +3,12 @@ package grpc
 import (
 	"context"
 	"errors"
-	pb "github.com/JMURv/par-pro-seo/api/pb"
-	ctrl "github.com/JMURv/par-pro-seo/internal/controller"
-	hdl "github.com/JMURv/par-pro-seo/internal/handler"
-	metrics "github.com/JMURv/par-pro-seo/internal/metrics/prometheus"
-	"github.com/JMURv/par-pro-seo/internal/validation"
-	utils "github.com/JMURv/par-pro-seo/pkg/utils/grpc"
+	pb "github.com/JMURv/seo-svc/api/pb"
+	ctrl "github.com/JMURv/seo-svc/internal/controller"
+	hdl "github.com/JMURv/seo-svc/internal/handler"
+	metrics "github.com/JMURv/seo-svc/internal/metrics/prometheus"
+	"github.com/JMURv/seo-svc/internal/validation"
+	utils "github.com/JMURv/seo-svc/pkg/utils/grpc"
 	"github.com/opentracing/opentracing-go"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -42,7 +42,7 @@ func (h *Handler) GetSEO(ctx context.Context, req *pb.GetSEOReq) (*pb.SEOMsg, er
 	return utils.ModelToProto(res), nil
 }
 
-func (h *Handler) CreateSEO(ctx context.Context, req *pb.SEOMsg) (*pb.EmptySEO, error) {
+func (h *Handler) CreateSEO(ctx context.Context, req *pb.SEOMsg) (*pb.Uuid64SEO, error) {
 	const op = "seo.CreateSEO.hdl"
 	s, c := time.Now(), codes.OK
 	span := opentracing.GlobalTracer().StartSpan(op)
@@ -58,7 +58,7 @@ func (h *Handler) CreateSEO(ctx context.Context, req *pb.SEOMsg) (*pb.EmptySEO, 
 		return nil, status.Errorf(c, err.Error())
 	}
 
-	err := h.ctrl.CreateSEO(ctx, obj)
+	res, err := h.ctrl.CreateSEO(ctx, obj)
 	if err != nil && errors.Is(err, ctrl.ErrNotFound) {
 		c = codes.NotFound
 		return nil, status.Errorf(c, err.Error())
@@ -67,7 +67,9 @@ func (h *Handler) CreateSEO(ctx context.Context, req *pb.SEOMsg) (*pb.EmptySEO, 
 		c = codes.Internal
 		return nil, status.Errorf(c, hdl.ErrInternal.Error())
 	}
-	return &pb.EmptySEO{}, nil
+	return &pb.Uuid64SEO{
+		Id: res,
+	}, nil
 }
 
 func (h *Handler) UpdateSEO(ctx context.Context, req *pb.SEOMsg) (*pb.EmptySEO, error) {

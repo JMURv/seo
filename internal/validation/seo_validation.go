@@ -1,7 +1,7 @@
 package validation
 
 import (
-	"github.com/JMURv/par-pro-seo/pkg/model"
+	"github.com/JMURv/seo-svc/pkg/model"
 )
 
 func ValidateSEO(seo *model.SEO) error {
