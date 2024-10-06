@@ -41,6 +41,21 @@ func (m *MockappRepo) EXPECT() *MockappRepoMockRecorder {
 	return m.recorder
 }
 
+// CreatePage mocks base method.
+func (m *MockappRepo) CreatePage(ctx context.Context, req *model.Page) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreatePage", ctx, req)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreatePage indicates an expected call of CreatePage.
+func (mr *MockappRepoMockRecorder) CreatePage(ctx, req any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePage", reflect.TypeOf((*MockappRepo)(nil).CreatePage), ctx, req)
+}
+
 // CreateSEO mocks base method.
 func (m *MockappRepo) CreateSEO(ctx context.Context, req *model.SEO) (uint64, error) {
 	m.ctrl.T.Helper()
@@ -54,6 +69,20 @@ func (m *MockappRepo) CreateSEO(ctx context.Context, req *model.SEO) (uint64, er
 func (mr *MockappRepoMockRecorder) CreateSEO(ctx, req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSEO", reflect.TypeOf((*MockappRepo)(nil).CreateSEO), ctx, req)
+}
+
+// DeletePage mocks base method.
+func (m *MockappRepo) DeletePage(ctx context.Context, slug string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeletePage", ctx, slug)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeletePage indicates an expected call of DeletePage.
+func (mr *MockappRepoMockRecorder) DeletePage(ctx, slug any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePage", reflect.TypeOf((*MockappRepo)(nil).DeletePage), ctx, slug)
 }
 
 // DeleteSEO mocks base method.
@@ -70,6 +99,21 @@ func (mr *MockappRepoMockRecorder) DeleteSEO(ctx, name, pk any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSEO", reflect.TypeOf((*MockappRepo)(nil).DeleteSEO), ctx, name, pk)
 }
 
+// GetPage mocks base method.
+func (m *MockappRepo) GetPage(ctx context.Context, slug string) (*model.Page, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPage", ctx, slug)
+	ret0, _ := ret[0].(*model.Page)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPage indicates an expected call of GetPage.
+func (mr *MockappRepoMockRecorder) GetPage(ctx, slug any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPage", reflect.TypeOf((*MockappRepo)(nil).GetPage), ctx, slug)
+}
+
 // GetSEO mocks base method.
 func (m *MockappRepo) GetSEO(ctx context.Context, name, pk string) (*model.SEO, error) {
 	m.ctrl.T.Helper()
@@ -83,6 +127,35 @@ func (m *MockappRepo) GetSEO(ctx context.Context, name, pk string) (*model.SEO, 
 func (mr *MockappRepoMockRecorder) GetSEO(ctx, name, pk any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSEO", reflect.TypeOf((*MockappRepo)(nil).GetSEO), ctx, name, pk)
+}
+
+// ListPages mocks base method.
+func (m *MockappRepo) ListPages(ctx context.Context) ([]*model.Page, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListPages", ctx)
+	ret0, _ := ret[0].([]*model.Page)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListPages indicates an expected call of ListPages.
+func (mr *MockappRepoMockRecorder) ListPages(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPages", reflect.TypeOf((*MockappRepo)(nil).ListPages), ctx)
+}
+
+// UpdatePage mocks base method.
+func (m *MockappRepo) UpdatePage(ctx context.Context, slug string, req *model.Page) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdatePage", ctx, slug, req)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdatePage indicates an expected call of UpdatePage.
+func (mr *MockappRepoMockRecorder) UpdatePage(ctx, slug, req any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePage", reflect.TypeOf((*MockappRepo)(nil).UpdatePage), ctx, slug, req)
 }
 
 // UpdateSEO mocks base method.

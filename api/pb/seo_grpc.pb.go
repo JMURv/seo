@@ -233,3 +233,257 @@ var SEO_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "api/pb/seo.proto",
 }
+
+const (
+	Page_ListPages_FullMethodName  = "/seo.Page/ListPages"
+	Page_GetPage_FullMethodName    = "/seo.Page/GetPage"
+	Page_CreatePage_FullMethodName = "/seo.Page/CreatePage"
+	Page_UpdatePage_FullMethodName = "/seo.Page/UpdatePage"
+	Page_DeletePage_FullMethodName = "/seo.Page/DeletePage"
+)
+
+// PageClient is the client API for Page service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type PageClient interface {
+	ListPages(ctx context.Context, in *EmptySEO, opts ...grpc.CallOption) (*ListPageRes, error)
+	GetPage(ctx context.Context, in *SlugSEO, opts ...grpc.CallOption) (*PageMsg, error)
+	CreatePage(ctx context.Context, in *PageMsg, opts ...grpc.CallOption) (*SlugSEO, error)
+	UpdatePage(ctx context.Context, in *PageWithSlugMsg, opts ...grpc.CallOption) (*EmptySEO, error)
+	DeletePage(ctx context.Context, in *SlugSEO, opts ...grpc.CallOption) (*EmptySEO, error)
+}
+
+type pageClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewPageClient(cc grpc.ClientConnInterface) PageClient {
+	return &pageClient{cc}
+}
+
+func (c *pageClient) ListPages(ctx context.Context, in *EmptySEO, opts ...grpc.CallOption) (*ListPageRes, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPageRes)
+	err := c.cc.Invoke(ctx, Page_ListPages_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pageClient) GetPage(ctx context.Context, in *SlugSEO, opts ...grpc.CallOption) (*PageMsg, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PageMsg)
+	err := c.cc.Invoke(ctx, Page_GetPage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pageClient) CreatePage(ctx context.Context, in *PageMsg, opts ...grpc.CallOption) (*SlugSEO, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SlugSEO)
+	err := c.cc.Invoke(ctx, Page_CreatePage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pageClient) UpdatePage(ctx context.Context, in *PageWithSlugMsg, opts ...grpc.CallOption) (*EmptySEO, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EmptySEO)
+	err := c.cc.Invoke(ctx, Page_UpdatePage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pageClient) DeletePage(ctx context.Context, in *SlugSEO, opts ...grpc.CallOption) (*EmptySEO, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EmptySEO)
+	err := c.cc.Invoke(ctx, Page_DeletePage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// PageServer is the server API for Page service.
+// All implementations must embed UnimplementedPageServer
+// for forward compatibility.
+type PageServer interface {
+	ListPages(context.Context, *EmptySEO) (*ListPageRes, error)
+	GetPage(context.Context, *SlugSEO) (*PageMsg, error)
+	CreatePage(context.Context, *PageMsg) (*SlugSEO, error)
+	UpdatePage(context.Context, *PageWithSlugMsg) (*EmptySEO, error)
+	DeletePage(context.Context, *SlugSEO) (*EmptySEO, error)
+	mustEmbedUnimplementedPageServer()
+}
+
+// UnimplementedPageServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedPageServer struct{}
+
+func (UnimplementedPageServer) ListPages(context.Context, *EmptySEO) (*ListPageRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPages not implemented")
+}
+func (UnimplementedPageServer) GetPage(context.Context, *SlugSEO) (*PageMsg, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPage not implemented")
+}
+func (UnimplementedPageServer) CreatePage(context.Context, *PageMsg) (*SlugSEO, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePage not implemented")
+}
+func (UnimplementedPageServer) UpdatePage(context.Context, *PageWithSlugMsg) (*EmptySEO, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdatePage not implemented")
+}
+func (UnimplementedPageServer) DeletePage(context.Context, *SlugSEO) (*EmptySEO, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeletePage not implemented")
+}
+func (UnimplementedPageServer) mustEmbedUnimplementedPageServer() {}
+func (UnimplementedPageServer) testEmbeddedByValue()              {}
+
+// UnsafePageServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to PageServer will
+// result in compilation errors.
+type UnsafePageServer interface {
+	mustEmbedUnimplementedPageServer()
+}
+
+func RegisterPageServer(s grpc.ServiceRegistrar, srv PageServer) {
+	// If the following call pancis, it indicates UnimplementedPageServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&Page_ServiceDesc, srv)
+}
+
+func _Page_ListPages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmptySEO)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PageServer).ListPages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Page_ListPages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PageServer).ListPages(ctx, req.(*EmptySEO))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Page_GetPage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SlugSEO)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PageServer).GetPage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Page_GetPage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PageServer).GetPage(ctx, req.(*SlugSEO))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Page_CreatePage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PageMsg)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PageServer).CreatePage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Page_CreatePage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PageServer).CreatePage(ctx, req.(*PageMsg))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Page_UpdatePage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PageWithSlugMsg)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PageServer).UpdatePage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Page_UpdatePage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PageServer).UpdatePage(ctx, req.(*PageWithSlugMsg))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Page_DeletePage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SlugSEO)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PageServer).DeletePage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Page_DeletePage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PageServer).DeletePage(ctx, req.(*SlugSEO))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// Page_ServiceDesc is the grpc.ServiceDesc for Page service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var Page_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "seo.Page",
+	HandlerType: (*PageServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListPages",
+			Handler:    _Page_ListPages_Handler,
+		},
+		{
+			MethodName: "GetPage",
+			Handler:    _Page_GetPage_Handler,
+		},
+		{
+			MethodName: "CreatePage",
+			Handler:    _Page_CreatePage_Handler,
+		},
+		{
+			MethodName: "UpdatePage",
+			Handler:    _Page_UpdatePage_Handler,
+		},
+		{
+			MethodName: "DeletePage",
+			Handler:    _Page_DeletePage_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "api/pb/seo.proto",
+}

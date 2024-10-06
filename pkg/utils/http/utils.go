@@ -61,3 +61,11 @@ func ParseURLParams(path string) (string, string) {
 
 	return parts[0], parts[1]
 }
+
+func ParsePageParams(path string) string {
+	parts := strings.Split(
+		strings.TrimPrefix(path, "/api/page/"), "/",
+	)
+
+	return parts[0]
+}

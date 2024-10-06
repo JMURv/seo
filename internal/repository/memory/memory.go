@@ -7,11 +7,13 @@ import (
 
 type Repository struct {
 	sync.RWMutex
-	data map[uint64]*model.SEO
+	SEOData  map[uint64]*model.SEO
+	PageData map[string]*model.Page
 }
 
 func New() *Repository {
 	return &Repository{
-		data: make(map[uint64]*model.SEO),
+		SEOData:  make(map[uint64]*model.SEO),
+		PageData: make(map[string]*model.Page),
 	}
 }

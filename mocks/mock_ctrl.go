@@ -40,6 +40,21 @@ func (m *MockSEOCtrl) EXPECT() *MockSEOCtrlMockRecorder {
 	return m.recorder
 }
 
+// CreatePage mocks base method.
+func (m *MockSEOCtrl) CreatePage(ctx context.Context, req *model.Page) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreatePage", ctx, req)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreatePage indicates an expected call of CreatePage.
+func (mr *MockSEOCtrlMockRecorder) CreatePage(ctx, req any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePage", reflect.TypeOf((*MockSEOCtrl)(nil).CreatePage), ctx, req)
+}
+
 // CreateSEO mocks base method.
 func (m *MockSEOCtrl) CreateSEO(ctx context.Context, req *model.SEO) (uint64, error) {
 	m.ctrl.T.Helper()
@@ -53,6 +68,20 @@ func (m *MockSEOCtrl) CreateSEO(ctx context.Context, req *model.SEO) (uint64, er
 func (mr *MockSEOCtrlMockRecorder) CreateSEO(ctx, req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSEO", reflect.TypeOf((*MockSEOCtrl)(nil).CreateSEO), ctx, req)
+}
+
+// DeletePage mocks base method.
+func (m *MockSEOCtrl) DeletePage(ctx context.Context, slug string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeletePage", ctx, slug)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeletePage indicates an expected call of DeletePage.
+func (mr *MockSEOCtrlMockRecorder) DeletePage(ctx, slug any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePage", reflect.TypeOf((*MockSEOCtrl)(nil).DeletePage), ctx, slug)
 }
 
 // DeleteSEO mocks base method.
@@ -69,6 +98,21 @@ func (mr *MockSEOCtrlMockRecorder) DeleteSEO(ctx, name, pk any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSEO", reflect.TypeOf((*MockSEOCtrl)(nil).DeleteSEO), ctx, name, pk)
 }
 
+// GetPage mocks base method.
+func (m *MockSEOCtrl) GetPage(ctx context.Context, slug string) (*model.Page, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPage", ctx, slug)
+	ret0, _ := ret[0].(*model.Page)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPage indicates an expected call of GetPage.
+func (mr *MockSEOCtrlMockRecorder) GetPage(ctx, slug any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPage", reflect.TypeOf((*MockSEOCtrl)(nil).GetPage), ctx, slug)
+}
+
 // GetSEO mocks base method.
 func (m *MockSEOCtrl) GetSEO(ctx context.Context, name, pk string) (*model.SEO, error) {
 	m.ctrl.T.Helper()
@@ -82,6 +126,35 @@ func (m *MockSEOCtrl) GetSEO(ctx context.Context, name, pk string) (*model.SEO, 
 func (mr *MockSEOCtrlMockRecorder) GetSEO(ctx, name, pk any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSEO", reflect.TypeOf((*MockSEOCtrl)(nil).GetSEO), ctx, name, pk)
+}
+
+// ListPages mocks base method.
+func (m *MockSEOCtrl) ListPages(ctx context.Context) ([]*model.Page, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListPages", ctx)
+	ret0, _ := ret[0].([]*model.Page)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListPages indicates an expected call of ListPages.
+func (mr *MockSEOCtrlMockRecorder) ListPages(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPages", reflect.TypeOf((*MockSEOCtrl)(nil).ListPages), ctx)
+}
+
+// UpdatePage mocks base method.
+func (m *MockSEOCtrl) UpdatePage(ctx context.Context, slug string, req *model.Page) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdatePage", ctx, slug, req)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdatePage indicates an expected call of UpdatePage.
+func (mr *MockSEOCtrlMockRecorder) UpdatePage(ctx, slug, req any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePage", reflect.TypeOf((*MockSEOCtrl)(nil).UpdatePage), ctx, slug, req)
 }
 
 // UpdateSEO mocks base method.

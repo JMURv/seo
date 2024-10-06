@@ -6,6 +6,7 @@ import (
 )
 
 type appRepo interface {
+	PageRepo
 	SEORepo
 }
 

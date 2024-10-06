@@ -54,7 +54,7 @@ func main() {
 	)
 
 	if err := dscvry.Register(); err != nil {
-		zap.L().Fatal("Error registering service", zap.Error(err))
+		zap.L().Warn("Error registering service", zap.Error(err))
 	}
 
 	// Setting up main app
@@ -75,7 +75,7 @@ func main() {
 		cancel()
 		cache.Close()
 		if err := dscvry.Deregister(); err != nil {
-			zap.L().Debug("Error deregistering service", zap.Error(err))
+			zap.L().Warn("Error deregistering service", zap.Error(err))
 		}
 		if err := h.Close(); err != nil {
 			zap.L().Debug("Error closing handler", zap.Error(err))

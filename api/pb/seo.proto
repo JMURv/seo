@@ -7,6 +7,9 @@ message EmptySEO {}
 message uuid64SEO {
   uint64 id = 1;
 }
+message slugSEO {
+  string slug = 1;
+}
 
 message SEOMsg {
   uint64 id = 1;
@@ -32,4 +35,29 @@ service SEO {
 message GetSEOReq {
   string name = 1;
   string pk = 2;
+}
+
+service Page {
+  rpc ListPages(EmptySEO) returns (ListPageRes);
+  rpc GetPage(slugSEO) returns (PageMsg);
+  rpc CreatePage(PageMsg) returns (slugSEO);
+  rpc UpdatePage(PageWithSlugMsg) returns (EmptySEO);
+  rpc DeletePage(slugSEO) returns (EmptySEO);
+}
+
+message ListPageRes {
+  repeated PageMsg pages = 1;
+}
+
+message PageMsg {
+  string slug = 1;
+  string title = 2;
+  string href = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+}
+
+message PageWithSlugMsg {
+  string slug = 1;
+  PageMsg page = 2;
 }

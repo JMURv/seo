@@ -1,5 +1,5 @@
 -- pages
-CREATE TABLE IF NOT EXISTS pages (
+CREATE TABLE IF NOT EXISTS page (
     slug VARCHAR(255) PRIMARY KEY,
     title VARCHAR(255),
     href VARCHAR(255),

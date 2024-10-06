@@ -16,6 +16,7 @@ import (
 
 type Handler struct {
 	pb.SEOServer
+	pb.PageServer
 	srv  *grpc.Server
 	hsrv *health.Server
 	ctrl handler.SEOCtrl
@@ -43,6 +44,7 @@ func New(ctrl handler.SEOCtrl) *Handler {
 
 func (h *Handler) Start(port int) {
 	pb.RegisterSEOServer(h.srv, h)
+	pb.RegisterPageServer(h.srv, h)
 	grpc_health_v1.RegisterHealthServer(h.srv, h.hsrv)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%v", port))

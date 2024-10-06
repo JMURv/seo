@@ -10,3 +10,5 @@ var ErrMissingOGDescription = errors.New("missing og description")
 var ErrMissingOGImage = errors.New("missing og image")
 var ErrMissingOBJName = errors.New("missing related obj name")
 var ErrMissingOBJPK = errors.New("missing related obj pk")
+
+var ErrMissingHref = errors.New("missing href")

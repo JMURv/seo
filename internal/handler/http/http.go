@@ -29,6 +29,7 @@ func (h *Handler) Start(port int) {
 	//r.Use(h.tracingMiddleware)
 
 	RegisterSEORoutes(mux, h)
+	RegisterPageRoutes(mux, h)
 	mux.HandleFunc("/api/health-check", func(w http.ResponseWriter, r *http.Request) {
 		utils.SuccessResponse(w, http.StatusOK, "OK")
 	})
@@ -103,8 +104,4 @@ func (h *Handler) tracingMiddleware(next http.Handler) http.Handler {
 		zap.L().Info("Request", zap.String("method", r.Method), zap.String("uri", r.RequestURI))
 		next.ServeHTTP(w, r)
 	})
-}
-
-func (h *Handler) healthCheck(w http.ResponseWriter, r *http.Request) {
-	utils.SuccessResponse(w, http.StatusOK, "OK")
 }
