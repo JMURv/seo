@@ -23,3 +23,5 @@ CREATE TABLE IF NOT EXISTS seo (
     created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX idx_seo_name_and_pk ON seo (obj_name, obj_pk);
