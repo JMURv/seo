@@ -2,6 +2,7 @@ package discovery
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"github.com/goccy/go-json"
 	"net/http"
@@ -22,10 +23,12 @@ func New(url, name, addr string) *Discovery {
 }
 
 func (d *Discovery) Register() error {
-	if req, err := json.Marshal(map[string]string{
-		"name":    d.name,
-		"address": d.addr,
-	}); err != nil {
+	if req, err := json.Marshal(
+		map[string]string{
+			"name":    d.name,
+			"address": d.addr,
+		},
+	); err != nil {
 		return err
 	} else {
 		post, err := http.Post(fmt.Sprintf("%v/register", d.url), "application/json", bytes.NewBuffer(req))
@@ -38,10 +41,12 @@ func (d *Discovery) Register() error {
 }
 
 func (d *Discovery) Deregister() error {
-	if req, err := json.Marshal(map[string]string{
-		"name":    d.name,
-		"address": d.addr,
-	}); err != nil {
+	if req, err := json.Marshal(
+		map[string]string{
+			"name":    d.name,
+			"address": d.addr,
+		},
+	); err != nil {
 		return err
 	} else {
 		post, err := http.Post(fmt.Sprintf("%v/deregister", d.url), "application/json", bytes.NewBuffer(req))
@@ -51,4 +56,33 @@ func (d *Discovery) Deregister() error {
 	}
 
 	return nil
+}
+
+func (d *Discovery) FindServiceByName(ctx context.Context, name string) (string, error) {
+	req, err := json.Marshal(
+		map[string]string{
+			"name": name,
+		},
+	)
+	if err != nil {
+		return "", err
+	}
+
+	post, err := http.Post(fmt.Sprintf("%v/find", d.url), "application/json", bytes.NewBuffer(req))
+	if err != nil {
+		return "", err
+	}
+
+	if err != nil || post.StatusCode != http.StatusOK {
+		return "", err
+	}
+
+	res := struct {
+		Address string `json:"address"`
+	}{}
+	if err := json.NewDecoder(post.Body).Decode(&res); err != nil {
+		return "", err
+	}
+
+	return res.Address, nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/JMURv/seo-svc/internal/controller/sso"
 	"github.com/JMURv/seo-svc/internal/handler"
 	utils "github.com/JMURv/seo-svc/pkg/utils/http"
 	"github.com/opentracing/opentracing-go"
@@ -16,11 +17,13 @@ import (
 type Handler struct {
 	srv  *http.Server
 	ctrl handler.SEOCtrl
+	sso  sso.SSOSvc
 }
 
-func New(ctrl handler.SEOCtrl) *Handler {
+func New(ctrl handler.SEOCtrl, sso sso.SSOSvc) *Handler {
 	return &Handler{
 		ctrl: ctrl,
+		sso:  sso,
 	}
 }
 
@@ -30,9 +33,11 @@ func (h *Handler) Start(port int) {
 
 	RegisterSEORoutes(mux, h)
 	RegisterPageRoutes(mux, h)
-	mux.HandleFunc("/api/health-check", func(w http.ResponseWriter, r *http.Request) {
-		utils.SuccessResponse(w, http.StatusOK, "OK")
-	})
+	mux.HandleFunc(
+		"/api/health-check", func(w http.ResponseWriter, r *http.Request) {
+			utils.SuccessResponse(w, http.StatusOK, "OK")
+		},
+	)
 
 	h.srv = &http.Server{
 		Handler:      mux,
@@ -66,42 +71,42 @@ func middlewareFunc(h http.HandlerFunc, middleware ...func(http.Handler) http.Ha
 }
 
 func (h *Handler) authMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authHeader := r.Header.Get("Authorization")
-		if authHeader == "" {
-			utils.ErrResponse(w, http.StatusUnauthorized, errors.New("authorization header is missing"))
-			return
-		}
+	return http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			authHeader := r.Header.Get("Authorization")
+			if authHeader == "" {
+				utils.ErrResponse(w, http.StatusUnauthorized, errors.New("authorization header is missing"))
+				return
+			}
 
-		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
-		if tokenStr == authHeader {
-			utils.ErrResponse(w, http.StatusUnauthorized, errors.New("invalid token format"))
-			return
-		}
+			tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+			if tokenStr == authHeader {
+				utils.ErrResponse(w, http.StatusUnauthorized, errors.New("invalid token format"))
+				return
+			}
 
-		//claims, err := h.auth.VerifyToken(tokenStr)
-		//if err != nil {
-		//	utils.ErrResponse(w, http.StatusUnauthorized, err)
-		//	return
-		//}
+			token, err := h.sso.GetIDByToken(r.Context(), tokenStr)
+			if err != nil {
+				utils.ErrResponse(w, http.StatusUnauthorized, err)
+				return
+			}
 
-		claims := map[string]string{
-			"uid": "test-uid-000",
-		}
-
-		ctx := context.WithValue(r.Context(), "uid", claims["uid"])
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+			ctx := context.WithValue(r.Context(), "uid", token)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		},
+	)
 }
 
 func (h *Handler) tracingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		span := opentracing.GlobalTracer().StartSpan(
-			fmt.Sprintf("%s %s", r.Method, r.URL),
-		)
-		defer span.Finish()
+	return http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			span := opentracing.GlobalTracer().StartSpan(
+				fmt.Sprintf("%s %s", r.Method, r.URL),
+			)
+			defer span.Finish()
 
-		zap.L().Info("Request", zap.String("method", r.Method), zap.String("uri", r.RequestURI))
-		next.ServeHTTP(w, r)
-	})
+			zap.L().Info("Request", zap.String("method", r.Method), zap.String("uri", r.RequestURI))
+			next.ServeHTTP(w, r)
+		},
+	)
 }

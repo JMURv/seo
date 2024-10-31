@@ -29,6 +29,7 @@ tasks:
     cmds:
       - mockgen -source="./internal/handler/hdl.go" -destination="mocks/mock_ctrl.go" -package=mocks
       - mockgen -source="./internal/controller/ctrl.go" -destination="mocks/mock_repos.go" -package=mocks
+      - mockgen -source="./internal/controller/sso/sso.go" -destination="mocks/mock_sso.go" -package=mocks
 
   build:
     desc: Build app

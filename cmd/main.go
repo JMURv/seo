@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/JMURv/seo-svc/internal/cache/redis"
 	ctrl "github.com/JMURv/seo-svc/internal/controller"
+	"github.com/JMURv/seo-svc/internal/controller/sso"
 	"github.com/JMURv/seo-svc/internal/discovery"
 
 	//handler "github.com/JMURv/seo-svc/internal/handler/http"
@@ -62,7 +63,7 @@ func main() {
 	repo := db.New(conf.DB)
 
 	svc := ctrl.New(repo, cache)
-	h := handler.New(svc)
+	h := handler.New(svc, sso.New(dscvry))
 
 	// Graceful shutdown
 	go func() {
