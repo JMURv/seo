@@ -25,22 +25,19 @@ jobs:
         run: go install github.com/wadey/gocovmerge@latest
 
       - name: Run DB repository tests
-        run: go test -coverprofile=repo_db_coverage.out ./internal/repository/db
-
-      - name: Run Mem repository tests
-        run: go test -coverprofile=repo_mem_coverage.out ./internal/repository/memory
+        run: go test -coverprofile=cov_repo.out ./internal/repository/db
 
       - name: Run controller tests
-        run: go test -coverprofile=ctrl_coverage.out ./internal/controller
+        run: go test -coverprofile=cov_ctrl.out ./internal/controller
 
       - name: Run gRPC handler tests
-        run: go test -coverprofile=hdl_grpc_coverage.out ./internal/handler/grpc
+        run: go test -coverprofile=cov_grpc.out ./internal/handler/grpc
 
       - name: Run HTTP handler tests
-        run: go test -coverprofile=hdl_http_coverage.out ./internal/handler/http
+        run: go test -coverprofile=cov_http.out ./internal/handler/http
 
       - name: Merge coverage reports
-        run: gocovmerge repo_db_coverage.out repo_mem_coverage.out ctrl_coverage.out hdl_http_coverage.out hdl_grpc_coverage.out > coverage.out
+        run: gocovmerge cov_repo.out cov_ctrl.out cov_grpc.out cov_http.out > coverage.out
 
       - name: Update coverage report
         uses: ncruces/go-coverage-report@v0

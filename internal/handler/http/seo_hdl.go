@@ -4,6 +4,7 @@ import (
 	"errors"
 	ctrl "github.com/JMURv/seo-svc/internal/controller"
 	hdl "github.com/JMURv/seo-svc/internal/handler"
+	mid "github.com/JMURv/seo-svc/internal/handler/http/middleware"
 	metrics "github.com/JMURv/seo-svc/internal/metrics/prometheus"
 	"github.com/JMURv/seo-svc/internal/validation"
 	"github.com/JMURv/seo-svc/pkg/model"
@@ -15,27 +16,31 @@ import (
 )
 
 func RegisterSEORoutes(mux *http.ServeMux, h *Handler) {
-	mux.HandleFunc("/api/seo", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodPost:
-			h.CreateSEO(w, r)
-		default:
-			utils.ErrResponse(w, http.StatusMethodNotAllowed, hdl.ErrMethodNotAllowed)
-		}
-	})
+	mux.HandleFunc(
+		"/api/seo", func(w http.ResponseWriter, r *http.Request) {
+			switch r.Method {
+			case http.MethodPost:
+				mid.ApplyMiddleware(h.CreateSEO, h.authMiddleware)(w, r)
+			default:
+				utils.ErrResponse(w, http.StatusMethodNotAllowed, hdl.ErrMethodNotAllowed)
+			}
+		},
+	)
 
-	mux.HandleFunc("/api/seo/", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			h.GetSEO(w, r)
-		case http.MethodPut:
-			h.UpdateSEO(w, r)
-		case http.MethodDelete:
-			h.DeleteSEO(w, r)
-		default:
-			utils.ErrResponse(w, http.StatusMethodNotAllowed, hdl.ErrMethodNotAllowed)
-		}
-	})
+	mux.HandleFunc(
+		"/api/seo/", func(w http.ResponseWriter, r *http.Request) {
+			switch r.Method {
+			case http.MethodGet:
+				h.GetSEO(w, r)
+			case http.MethodPut:
+				mid.ApplyMiddleware(h.UpdateSEO, h.authMiddleware)(w, r)
+			case http.MethodDelete:
+				mid.ApplyMiddleware(h.DeleteSEO, h.authMiddleware)(w, r)
+			default:
+				utils.ErrResponse(w, http.StatusMethodNotAllowed, hdl.ErrMethodNotAllowed)
+			}
+		},
+	)
 }
 
 func (h *Handler) GetSEO(w http.ResponseWriter, r *http.Request) {

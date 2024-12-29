@@ -6,7 +6,7 @@ import (
 	"github.com/JMURv/seo-svc/internal/cache/redis"
 	ctrl "github.com/JMURv/seo-svc/internal/controller"
 	"github.com/JMURv/seo-svc/internal/controller/sso"
-	"github.com/JMURv/seo-svc/internal/discovery/JMURv"
+	"github.com/JMURv/seo-svc/internal/discovery"
 
 	//handler "github.com/JMURv/seo-svc/internal/handler/http"
 	handler "github.com/JMURv/seo-svc/internal/handler/grpc"

@@ -93,7 +93,8 @@ func (r *Repository) UpdatePage(ctx context.Context, slug string, req *model.Pag
 		return err
 	}
 
-	if aff, _ := res.RowsAffected(); aff == 0 {
+
+	if aff, _ := res.RowsAffected(); aff == 0{
 		return repo.ErrNotFound
 	}
 

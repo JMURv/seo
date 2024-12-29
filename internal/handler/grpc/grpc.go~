@@ -6,7 +6,6 @@ import (
 	pb "github.com/JMURv/seo-svc/api/pb"
 	"github.com/JMURv/seo-svc/internal/controller/sso"
 	"github.com/JMURv/seo-svc/internal/handler"
-	"github.com/JMURv/seo-svc/internal/handler/grpc/interceptors"
 	metrics "github.com/JMURv/seo-svc/internal/metrics/prometheus"
 	pm "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	"google.golang.org/grpc"
@@ -29,7 +28,7 @@ type Handler struct {
 func New(ctrl handler.SEOCtrl, sso sso.SSOSvc) *Handler {
 	srv := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
-			interceptors.AuthUnaryInterceptor(sso),
+			AuthUnaryInterceptor(sso),
 			metrics.SrvMetrics.UnaryServerInterceptor(pm.WithExemplarFromContext(metrics.Exemplar)),
 		),
 		grpc.ChainStreamInterceptor(

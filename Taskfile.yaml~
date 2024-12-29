@@ -11,13 +11,6 @@ tasks:
     cmds:
       - "protoc --go_out=. --go-grpc_out=. --go_opt=paths=source_relative --go-grpc_opt=paths=source_relative api/pb/seo.proto"
 
-  mocks:
-    desc: Generate mocks
-    cmds:
-      - mockgen -source="./internal/handler/hdl.go" -destination="mocks/mock_ctrl.go" -package=mocks
-      - mockgen -source="./internal/controller/ctrl.go" -destination="mocks/mock_repos.go" -package=mocks
-      - mockgen -source="./internal/controller/sso/sso.go" -destination="mocks/mock_sso.go" -package=mocks
-
   t:
     desc: Run tests
     cmds:
@@ -44,3 +37,10 @@ tasks:
     cmds:
       - "go test ./internal/repository/db"
       - "go test -coverprofile=cov_repo.out ./internal/repository/db && go tool cover -func=cov_repo.out"
+
+  mocks:
+    desc: Generate mocks
+    cmds:
+      - mockgen -source="./internal/handler/hdl.go" -destination="mocks/mock_ctrl.go" -package=mocks
+      - mockgen -source="./internal/controller/ctrl.go" -destination="mocks/mock_repos.go" -package=mocks
+      - mockgen -source="./internal/controller/sso/sso.go" -destination="mocks/mock_sso.go" -package=mocks

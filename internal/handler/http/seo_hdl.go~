@@ -15,72 +15,50 @@ import (
 	"time"
 )
 
-func RegisterPageRoutes(mux *http.ServeMux, h *Handler) {
-	mux.HandleFunc(
-		"/api/page", func(w http.ResponseWriter, r *http.Request) {
-			switch r.Method {
-			case http.MethodGet:
-				h.ListPages(w, r)
-			case http.MethodPost:
-				mid.ApplyMiddleware(h.CreatePage, h.authMiddleware)(w, r)
-			default:
-				utils.ErrResponse(w, http.StatusMethodNotAllowed, hdl.ErrMethodNotAllowed)
-			}
-		},
-	)
+func RegisterSEORoutes(mux *http.ServeMux, h *Handler) {
+	mux.HandleFunc("/api/seo", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			mid.ApplyMiddleware(h.CreateSEO, h.authMiddleware)(w, r)
+		default:
+			utils.ErrResponse(w, http.StatusMethodNotAllowed, hdl.ErrMethodNotAllowed)
+		}
+	})
 
-	mux.HandleFunc(
-		"/api/page/", func(w http.ResponseWriter, r *http.Request) {
-			switch r.Method {
-			case http.MethodGet:
-				h.GetPage(w, r)
-			case http.MethodPut:
-				mid.ApplyMiddleware(h.UpdatePage, h.authMiddleware)(w, r)
-			case http.MethodDelete:
-				mid.ApplyMiddleware(h.DeletePage, h.authMiddleware)(w, r)
-			default:
-				utils.ErrResponse(w, http.StatusMethodNotAllowed, hdl.ErrMethodNotAllowed)
-			}
-		},
-	)
+	mux.HandleFunc("/api/seo/", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			h.GetSEO(w, r)
+		case http.MethodPut:
+			mid.ApplyMiddleware(h.UpdateSEO, h.authMiddleware)(w, r)
+		case http.MethodDelete:
+			mid.ApplyMiddleware(h.DeleteSEO, h.authMiddleware)(w, r)
+		default:
+			utils.ErrResponse(w, http.StatusMethodNotAllowed, hdl.ErrMethodNotAllowed)
+		}
+	})
 }
 
-func (h *Handler) ListPages(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetSEO(w http.ResponseWriter, r *http.Request) {
 	s, c := time.Now(), http.StatusOK
-	const op = "pages.ListPages.handler"
+	const op = "seo.GetItemSEO.handler"
 	defer func() {
 		metrics.ObserveRequest(time.Since(s), c, op)
 	}()
 
-	res, err := h.ctrl.ListPages(r.Context())
-	if err != nil {
-		c = http.StatusInternalServerError
-		utils.ErrResponse(w, c, hdl.ErrInternal)
-		return
-	}
-
-	utils.SuccessResponse(w, c, res)
-}
-
-func (h *Handler) GetPage(w http.ResponseWriter, r *http.Request) {
-	s, c := time.Now(), http.StatusOK
-	const op = "pages.GetPage.handler"
-	defer func() {
-		metrics.ObserveRequest(time.Since(s), c, op)
-	}()
-
-	slug := utils.ParsePageParams(r.URL.Path)
-	if slug == "" {
+	name, pk := utils.ParseURLParams(r.URL.Path)
+	if name == "" || pk == "" {
 		c = http.StatusBadRequest
 		zap.L().Debug(
 			"failed to decode request, missing name or pk",
-			zap.String("op", op), zap.String("slug", slug),
+			zap.String("op", op),
+			zap.String("name", name), zap.String("pk", pk),
 		)
 		utils.ErrResponse(w, c, hdl.ErrDecodeRequest)
 		return
 	}
 
-	res, err := h.ctrl.GetPage(r.Context(), slug)
+	res, err := h.ctrl.GetSEO(r.Context(), name, pk)
 	if err != nil && errors.Is(err, ctrl.ErrNotFound) {
 		c = http.StatusNotFound
 		utils.ErrResponse(w, c, err)
@@ -94,35 +72,29 @@ func (h *Handler) GetPage(w http.ResponseWriter, r *http.Request) {
 	utils.SuccessResponse(w, c, res)
 }
 
-func (h *Handler) CreatePage(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) CreateSEO(w http.ResponseWriter, r *http.Request) {
 	s, c := time.Now(), http.StatusCreated
-	const op = "pages.CreatePage.handler"
+	const op = "seo.CreateSEO.handler"
 	defer func() {
 		metrics.ObserveRequest(time.Since(s), c, op)
 	}()
 
-	req := &model.Page{}
+	req := &model.SEO{}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 		c = http.StatusBadRequest
-		zap.L().Debug(
-			"failed to decode request",
-			zap.String("op", op), zap.Error(err),
-		)
-		utils.ErrResponse(w, c, err)
+		zap.L().Debug("failed to decode request", zap.String("op", op), zap.Error(err))
+		utils.ErrResponse(w, c, hdl.ErrDecodeRequest)
 		return
 	}
 
-	if err := validation.ValidatePage(req); err != nil {
+	if err := validation.ValidateSEO(req); err != nil {
 		c = http.StatusBadRequest
-		zap.L().Debug(
-			"failed to validate obj",
-			zap.String("op", op), zap.Error(err),
-		)
+		zap.L().Debug("failed to validate obj", zap.String("op", op), zap.Error(err))
 		utils.ErrResponse(w, c, err)
 		return
 	}
 
-	res, err := h.ctrl.CreatePage(r.Context(), req)
+	res, err := h.ctrl.CreateSEO(r.Context(), req)
 	if err != nil && errors.Is(err, ctrl.ErrAlreadyExists) {
 		c = http.StatusConflict
 		utils.ErrResponse(w, c, err)
@@ -136,40 +108,41 @@ func (h *Handler) CreatePage(w http.ResponseWriter, r *http.Request) {
 	utils.SuccessResponse(w, c, res)
 }
 
-func (h *Handler) UpdatePage(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) UpdateSEO(w http.ResponseWriter, r *http.Request) {
 	s, c := time.Now(), http.StatusOK
-	const op = "pages.UpdatePage.handler"
+	const op = "seo.UpdateSEO.handler"
 	defer func() {
 		metrics.ObserveRequest(time.Since(s), c, op)
 	}()
 
-	slug := utils.ParsePageParams(r.URL.Path)
-	if slug == "" {
+	name, pk := utils.ParseURLParams(r.URL.Path)
+	if name == "" || pk == "" {
 		c = http.StatusBadRequest
 		zap.L().Debug(
 			"failed to decode request, missing name or pk",
-			zap.String("op", op), zap.String("slug", slug),
+			zap.String("op", op),
+			zap.String("name", name), zap.String("pk", pk),
 		)
 		utils.ErrResponse(w, c, hdl.ErrDecodeRequest)
 		return
 	}
 
-	req := &model.Page{}
+	req := &model.SEO{}
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 		c = http.StatusBadRequest
 		zap.L().Debug("failed to decode request", zap.String("op", op), zap.Error(err))
-		utils.ErrResponse(w, c, err)
+		utils.ErrResponse(w, c, hdl.ErrDecodeRequest)
 		return
 	}
 
-	if err := validation.ValidatePage(req); err != nil {
+	if err := validation.ValidateSEO(req); err != nil {
 		c = http.StatusBadRequest
 		zap.L().Debug("failed to validate obj", zap.String("op", op), zap.Error(err))
 		utils.ErrResponse(w, c, err)
 		return
 	}
 
-	err := h.ctrl.UpdatePage(r.Context(), slug, req)
+	err := h.ctrl.UpdateSEO(r.Context(), req)
 	if err != nil && errors.Is(err, ctrl.ErrNotFound) {
 		c = http.StatusNotFound
 		utils.ErrResponse(w, c, err)
@@ -183,26 +156,26 @@ func (h *Handler) UpdatePage(w http.ResponseWriter, r *http.Request) {
 	utils.SuccessResponse(w, c, "OK")
 }
 
-func (h *Handler) DeletePage(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) DeleteSEO(w http.ResponseWriter, r *http.Request) {
 	s, c := time.Now(), http.StatusNoContent
-	const op = "pages.DeletePage.handler"
+	const op = "seo.DeleteSEO.handler"
 	defer func() {
 		metrics.ObserveRequest(time.Since(s), c, op)
 	}()
 
-	slug := utils.ParsePageParams(r.URL.Path)
-	if slug == "" {
+	name, pk := utils.ParseURLParams(r.URL.Path)
+	if name == "" || pk == "" {
 		c = http.StatusBadRequest
 		zap.L().Debug(
 			"failed to decode request, missing name or pk",
 			zap.String("op", op),
-			zap.String("slug", slug),
+			zap.String("name", name), zap.String("pk", pk),
 		)
 		utils.ErrResponse(w, c, hdl.ErrDecodeRequest)
 		return
 	}
 
-	err := h.ctrl.DeletePage(r.Context(), slug)
+	err := h.ctrl.DeleteSEO(r.Context(), name, pk)
 	if err != nil && errors.Is(err, ctrl.ErrNotFound) {
 		c = http.StatusNotFound
 		utils.ErrResponse(w, c, err)

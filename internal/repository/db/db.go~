@@ -13,16 +13,14 @@ type Repository struct {
 }
 
 func New(conf *conf.DBConfig) *Repository {
-	conn, err := sql.Open(
-		"postgres", fmt.Sprintf(
-			"postgres://%s:%s@%s:%d/%s?sslmode=disable",
-			conf.User,
-			conf.Password,
-			conf.Host,
-			conf.Port,
-			conf.Database,
-		),
-	)
+	conn, err := sql.Open("postgres", fmt.Sprintf(
+		"postgres://%s:%s@%s:%d/%s?sslmode=disable",
+		conf.User,
+		conf.Password,
+		conf.Host,
+		conf.Port,
+		conf.Database,
+	))
 	if err != nil {
 		zap.L().Fatal("Failed to connect to the database", zap.Error(err))
 	}

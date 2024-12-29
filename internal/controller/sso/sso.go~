@@ -4,7 +4,7 @@ import (
 	"context"
 	pb "github.com/JMURv/protos/par-pro"
 	ctrl "github.com/JMURv/seo-svc/internal/controller"
-	"github.com/JMURv/seo-svc/internal/discovery/JMURv"
+	"github.com/JMURv/seo-svc/internal/discovery"
 	"github.com/opentracing/opentracing-go"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"

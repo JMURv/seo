@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"github.com/JMURv/seo-svc/internal/controller/sso"
 	"github.com/JMURv/seo-svc/internal/handler"
+	mid "github.com/JMURv/seo-svc/internal/handler/http/middleware"
 	utils "github.com/JMURv/seo-svc/pkg/utils/http"
-	"github.com/opentracing/opentracing-go"
 	"go.uber.org/zap"
 	"net/http"
 	"strings"
@@ -29,8 +29,6 @@ func New(ctrl handler.SEOCtrl, sso sso.SSOSvc) *Handler {
 
 func (h *Handler) Start(port int) {
 	mux := http.NewServeMux()
-	//r.Use(h.tracingMiddleware)
-
 	RegisterSEORoutes(mux, h)
 	RegisterPageRoutes(mux, h)
 	mux.HandleFunc(
@@ -39,8 +37,10 @@ func (h *Handler) Start(port int) {
 		},
 	)
 
+	hdl := mid.RecoverPanic(mux)
+	hdl = mid.TracingMiddleware(mux)
 	h.srv = &http.Server{
-		Handler:      mux,
+		Handler:      hdl,
 		Addr:         fmt.Sprintf(":%v", port),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
@@ -60,16 +60,6 @@ func (h *Handler) Close() error {
 	return nil
 }
 
-func middlewareFunc(h http.HandlerFunc, middleware ...func(http.Handler) http.Handler) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var handler http.Handler = h
-		for _, m := range middleware {
-			handler = m(handler)
-		}
-		handler.ServeHTTP(w, r)
-	}
-}
-
 func (h *Handler) authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
@@ -85,7 +75,7 @@ func (h *Handler) authMiddleware(next http.Handler) http.Handler {
 				return
 			}
 
-			token, err := h.sso.GetIDByToken(r.Context(), tokenStr)
+			token, err := h.sso.ParseClaims(r.Context(), tokenStr)
 			if err != nil {
 				utils.ErrResponse(w, http.StatusUnauthorized, err)
 				return
@@ -93,20 +83,6 @@ func (h *Handler) authMiddleware(next http.Handler) http.Handler {
 
 			ctx := context.WithValue(r.Context(), "uid", token)
 			next.ServeHTTP(w, r.WithContext(ctx))
-		},
-	)
-}
-
-func (h *Handler) tracingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			span := opentracing.GlobalTracer().StartSpan(
-				fmt.Sprintf("%s %s", r.Method, r.URL),
-			)
-			defer span.Finish()
-
-			zap.L().Info("Request", zap.String("method", r.Method), zap.String("uri", r.RequestURI))
-			next.ServeHTTP(w, r)
 		},
 	)
 }

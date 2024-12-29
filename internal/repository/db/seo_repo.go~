@@ -137,6 +137,7 @@ func (r *Repository) DeleteSEO(ctx context.Context, name, pk string) error {
 		return err
 	}
 
+
 	if aff, _ := res.RowsAffected(); aff == 0 {
 		return repo.ErrNotFound
 	}
