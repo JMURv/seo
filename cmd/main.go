@@ -2,26 +2,21 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"github.com/JMURv/seo-svc/internal/cache/redis"
-	ctrl "github.com/JMURv/seo-svc/internal/controller"
-	"github.com/JMURv/seo-svc/internal/controller/sso"
-	"github.com/JMURv/seo-svc/internal/discovery/JMURv"
-
-	//handler "github.com/JMURv/seo-svc/internal/handler/http"
-	handler "github.com/JMURv/seo-svc/internal/handler/grpc"
-	tracing "github.com/JMURv/seo-svc/internal/metrics/jaeger"
-	metrics "github.com/JMURv/seo-svc/internal/metrics/prometheus"
+	"github.com/JMURv/seo/internal/cache/redis"
+	"github.com/JMURv/seo/internal/config"
+	"github.com/JMURv/seo/internal/ctrl"
+	"github.com/JMURv/seo/internal/ctrl/sso"
+	"github.com/JMURv/seo/internal/hdl/http"
+	"github.com/JMURv/seo/internal/observability/metrics/prometheus"
+	"github.com/JMURv/seo/internal/observability/tracing/jaeger"
+	"github.com/JMURv/seo/internal/repo/db"
 	"go.uber.org/zap"
-	//mem "github.com/JMURv/par-pro/internal/repository/memory"
-	db "github.com/JMURv/seo-svc/internal/repository/db"
-	cfg "github.com/JMURv/seo-svc/pkg/config"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
-const configPath = "local.config.yaml"
+const configPath = "configs/local.config.yaml"
 
 func mustRegisterLogger(mode string) {
 	switch mode {
@@ -41,53 +36,37 @@ func main() {
 	}()
 
 	ctx, cancel := context.WithCancel(context.Background())
-	conf := cfg.MustLoad(configPath)
-	mustRegisterLogger(conf.Server.Mode)
+	defer cancel()
 
-	// Start metrics and tracing
-	go metrics.New(conf.Server.Port + 5).Start(ctx)
-	go tracing.Start(ctx, conf.ServiceName, conf.Jaeger)
+	conf := config.MustLoad(configPath)
+	mustRegisterLogger(conf.Mode)
 
-	dscvry := discovery.New(
-		conf.SrvDiscovery.URL,
-		conf.ServiceName,
-		fmt.Sprintf("%v://%v:%v", conf.Server.Scheme, conf.Server.Domain, conf.Server.Port),
-	)
+	go prometheus.New(conf.Server.Port + 5).Start(ctx)
+	go jaeger.Start(ctx, conf.ServiceName, conf.Jaeger)
 
-	if err := dscvry.Register(); err != nil {
-		zap.L().Warn("Error registering service", zap.Error(err))
-	}
-
-	// Setting up main app
 	cache := redis.New(conf.Redis)
 	repo := db.New(conf.DB)
-
 	svc := ctrl.New(repo, cache)
-	h := handler.New(svc, sso.New(dscvry))
+	h := http.New(svc, sso.New(conf.Services))
 
-	// Graceful shutdown
-	go func() {
-		c := make(chan os.Signal, 1)
-		signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-		<-c
+	go h.Start(conf.Server.Port)
 
-		zap.L().Info("Shutting down gracefully...")
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	<-c
 
-		cancel()
-		cache.Close()
-		if err := dscvry.Deregister(); err != nil {
-			zap.L().Warn("Error deregistering service", zap.Error(err))
-		}
-		if err := h.Close(); err != nil {
-			zap.L().Debug("Error closing handler", zap.Error(err))
-		}
+	zap.L().Info("Shutting down gracefully...")
+	if err := h.Close(ctx); err != nil {
+		zap.L().Warn("Error closing handler", zap.Error(err))
+	}
 
-		os.Exit(0)
-	}()
+	if err := cache.Close(); err != nil {
+		zap.L().Warn("Failed to close connection to Redis: ", zap.Error(err))
+	}
 
-	// Start service
-	zap.L().Info(
-		fmt.Sprintf("Starting server on %v://%v:%v", conf.Server.Scheme, conf.Server.Domain, conf.Server.Port),
-	)
-	h.Start(conf.Server.Port)
+	if err := repo.Close(); err != nil {
+		zap.L().Warn("Error closing repository", zap.Error(err))
+	}
+
+	os.Exit(0)
 }
