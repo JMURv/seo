@@ -23,7 +23,7 @@ func RegisterPageRoutes(mux *http.ServeMux, h *Handler) {
 			case http.MethodGet:
 				h.ListPages(w, r)
 			case http.MethodPost:
-				middleware.Apply(h.CreatePage, middleware.AuthMiddleware(h.sso))
+				middleware.Apply(h.CreatePage, middleware.Auth(h.sso))(w, r)
 			default:
 				utils.ErrResponse(w, http.StatusMethodNotAllowed, ErrMethodNotAllowed)
 			}
@@ -36,9 +36,9 @@ func RegisterPageRoutes(mux *http.ServeMux, h *Handler) {
 			case http.MethodGet:
 				h.GetPage(w, r)
 			case http.MethodPut:
-				middleware.Apply(h.UpdatePage, middleware.AuthMiddleware(h.sso))
+				middleware.Apply(h.UpdatePage, middleware.Auth(h.sso))(w, r)
 			case http.MethodDelete:
-				middleware.Apply(h.DeletePage, middleware.AuthMiddleware(h.sso))
+				middleware.Apply(h.DeletePage, middleware.Auth(h.sso))(w, r)
 			default:
 				utils.ErrResponse(w, http.StatusMethodNotAllowed, ErrMethodNotAllowed)
 			}
@@ -120,7 +120,7 @@ func (h *Handler) CreatePage(w http.ResponseWriter, r *http.Request) {
 			zap.Any("req", req),
 			zap.Error(err),
 		)
-		utils.ErrResponse(w, c, err)
+		utils.ErrResponse(w, c, hdl.ErrDecodeRequest)
 		return
 	}
 

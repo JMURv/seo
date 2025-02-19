@@ -41,7 +41,7 @@ func (h *Handler) GetSEO(ctx context.Context, req *pb.GetSEOReq) (*pb.SEOMsg, er
 	return utils.ModelToProto(res), nil
 }
 
-func (h *Handler) CreateSEO(ctx context.Context, req *pb.SEOMsg) (*pb.Uuid64SEO, error) {
+func (h *Handler) CreateSEO(ctx context.Context, req *pb.SEOMsg) (*pb.CreateSEOResponse, error) {
 	const op = "seo.CreateSEO.hdl"
 	s, c := time.Now(), codes.OK
 	span, ctx := ot.StartSpanFromContext(ctx, op)
@@ -65,8 +65,9 @@ func (h *Handler) CreateSEO(ctx context.Context, req *pb.SEOMsg) (*pb.Uuid64SEO,
 		c = codes.Internal
 		return nil, status.Errorf(c, hdl.ErrInternal.Error())
 	}
-	return &pb.Uuid64SEO{
-		Id: res,
+	return &pb.CreateSEOResponse{
+		Name: res.Name,
+		Pk:   res.PK,
 	}, nil
 }
 

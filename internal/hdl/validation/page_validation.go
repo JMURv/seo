@@ -4,7 +4,7 @@ import md "github.com/JMURv/seo/internal/models"
 
 func ValidatePage(req *md.Page) error {
 	if req.Slug == "" {
-		return ErrMissingDescription
+		return ErrMissingSlug
 	}
 
 	if req.Title == "" {

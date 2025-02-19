@@ -2,6 +2,7 @@ package validation
 
 import "errors"
 
+var ErrMissingSlug = errors.New("missing slug")
 var ErrMissingTitle = errors.New("missing title")
 var ErrMissingDescription = errors.New("missing description")
 var ErrMissingKeywords = errors.New("missing keywords")

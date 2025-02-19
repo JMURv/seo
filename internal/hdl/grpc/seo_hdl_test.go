@@ -5,6 +5,7 @@ import (
 	"errors"
 	pb "github.com/JMURv/seo/api/grpc/v1/gen"
 	ctrl "github.com/JMURv/seo/internal/ctrl"
+	"github.com/JMURv/seo/internal/dto"
 	model "github.com/JMURv/seo/internal/models"
 	utils "github.com/JMURv/seo/internal/models/mapper"
 	"github.com/JMURv/seo/tests/mocks"
@@ -96,7 +97,12 @@ func TestHandler_CreateSEO(t *testing.T) {
 		"Success", func(t *testing.T) {
 			mockCtrl.EXPECT().
 				CreateSEO(gomock.Any(), utils.ProtoToModel(req)).
-				Return(uint64(1), nil).
+				Return(
+					&dto.CreateSEOResponse{
+						Name: "name",
+						PK:   "pk",
+					}, nil,
+				).
 				Times(1)
 
 			res, err := h.CreateSEO(ctx, req)
@@ -109,7 +115,7 @@ func TestHandler_CreateSEO(t *testing.T) {
 		"ErrNotFound", func(t *testing.T) {
 			mockCtrl.EXPECT().
 				CreateSEO(gomock.Any(), utils.ProtoToModel(req)).
-				Return(uint64(0), ctrl.ErrNotFound).
+				Return(nil, ctrl.ErrNotFound).
 				Times(1)
 
 			res, err := h.CreateSEO(ctx, req)
@@ -123,7 +129,7 @@ func TestHandler_CreateSEO(t *testing.T) {
 			newErr := errors.New("new error")
 			mockCtrl.EXPECT().
 				CreateSEO(gomock.Any(), utils.ProtoToModel(req)).
-				Return(uint64(0), newErr).
+				Return(nil, newErr).
 				Times(1)
 
 			res, err := h.CreateSEO(ctx, req)

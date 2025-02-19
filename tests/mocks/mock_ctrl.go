@@ -14,6 +14,7 @@ import (
 	reflect "reflect"
 	time "time"
 
+	dto "github.com/JMURv/seo/internal/dto"
 	models "github.com/JMURv/seo/internal/models"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -58,12 +59,13 @@ func (mr *MockAppRepoMockRecorder) CreatePage(ctx, req any) *gomock.Call {
 }
 
 // CreateSEO mocks base method.
-func (m *MockAppRepo) CreateSEO(ctx context.Context, req *models.SEO) (uint64, error) {
+func (m *MockAppRepo) CreateSEO(ctx context.Context, req *models.SEO) (string, string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateSEO", ctx, req)
-	ret0, _ := ret[0].(uint64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // CreateSEO indicates an expected call of CreateSEO.
@@ -198,10 +200,10 @@ func (m *MockAppCtrl) EXPECT() *MockAppCtrlMockRecorder {
 }
 
 // CreatePage mocks base method.
-func (m *MockAppCtrl) CreatePage(ctx context.Context, req *models.Page) (string, error) {
+func (m *MockAppCtrl) CreatePage(ctx context.Context, req *models.Page) (*dto.CreatePageResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreatePage", ctx, req)
-	ret0, _ := ret[0].(string)
+	ret0, _ := ret[0].(*dto.CreatePageResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -213,10 +215,10 @@ func (mr *MockAppCtrlMockRecorder) CreatePage(ctx, req any) *gomock.Call {
 }
 
 // CreateSEO mocks base method.
-func (m *MockAppCtrl) CreateSEO(ctx context.Context, req *models.SEO) (uint64, error) {
+func (m *MockAppCtrl) CreateSEO(ctx context.Context, req *models.SEO) (*dto.CreateSEOResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateSEO", ctx, req)
-	ret0, _ := ret[0].(uint64)
+	ret0, _ := ret[0].(*dto.CreateSEOResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

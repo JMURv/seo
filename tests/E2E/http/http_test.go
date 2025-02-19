@@ -6,13 +6,15 @@ import (
 	"github.com/JMURv/seo/internal/cache/redis"
 	"github.com/JMURv/seo/internal/config"
 	"github.com/JMURv/seo/internal/ctrl"
-	"github.com/JMURv/seo/internal/ctrl/sso"
 	hdl "github.com/JMURv/seo/internal/hdl/http"
 	"github.com/JMURv/seo/internal/repo/db"
+	"github.com/JMURv/seo/tests/mocks"
+	"go.uber.org/mock/gomock"
 	"go.uber.org/zap"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"testing"
 )
 
 const configPath = "../../../configs/test.config.yaml"
@@ -22,14 +24,19 @@ FROM pg_tables
 WHERE schemaname = 'public';
 `
 
-func setupTestServer() (*httptest.Server, func()) {
+func setupTestServer(t *testing.T) (*httptest.Server, *mocks.MockSSOSvc, func()) {
+	ctrlMock := gomock.NewController(t)
+	defer ctrlMock.Finish()
+	ssoCtrl := mocks.NewMockSSOSvc(ctrlMock)
+
 	zap.ReplaceGlobals(zap.Must(zap.NewDevelopment()))
 	conf := config.MustLoad(configPath)
 
 	repo := db.New(conf.DB)
 	cache := redis.New(conf.Redis)
 	svc := ctrl.New(repo, cache)
-	h := hdl.New(svc, sso.New(conf.Services))
+	//h := hdl.New(svc, sso.New(conf.Services))
+	h := hdl.New(svc, ssoCtrl)
 
 	mux := http.NewServeMux()
 	hdl.RegisterSEORoutes(mux, h)
@@ -83,5 +90,5 @@ func setupTestServer() (*httptest.Server, func()) {
 		}
 	}
 
-	return httptest.NewServer(mux), cleanupFunc
+	return httptest.NewServer(mux), ssoCtrl, cleanupFunc
 }

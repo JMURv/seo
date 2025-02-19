@@ -2,6 +2,7 @@ package ctrl
 
 import (
 	"context"
+	"github.com/JMURv/seo/internal/dto"
 	md "github.com/JMURv/seo/internal/models"
 	"io"
 	"time"
@@ -9,7 +10,7 @@ import (
 
 type AppRepo interface {
 	GetSEO(ctx context.Context, name, pk string) (*md.SEO, error)
-	CreateSEO(ctx context.Context, req *md.SEO) (uint64, error)
+	CreateSEO(ctx context.Context, req *md.SEO) (string, string, error)
 	UpdateSEO(ctx context.Context, req *md.SEO) error
 	DeleteSEO(ctx context.Context, name, pk string) error
 
@@ -22,13 +23,13 @@ type AppRepo interface {
 
 type AppCtrl interface {
 	GetSEO(ctx context.Context, name, pk string) (*md.SEO, error)
-	CreateSEO(ctx context.Context, req *md.SEO) (uint64, error)
+	CreateSEO(ctx context.Context, req *md.SEO) (*dto.CreateSEOResponse, error)
 	UpdateSEO(ctx context.Context, req *md.SEO) error
 	DeleteSEO(ctx context.Context, name, pk string) error
 
 	ListPages(ctx context.Context) ([]*md.Page, error)
 	GetPage(ctx context.Context, slug string) (*md.Page, error)
-	CreatePage(ctx context.Context, req *md.Page) (string, error)
+	CreatePage(ctx context.Context, req *md.Page) (*dto.CreatePageResponse, error)
 	UpdatePage(ctx context.Context, slug string, req *md.Page) error
 	DeletePage(ctx context.Context, slug string) error
 }

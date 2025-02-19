@@ -10,7 +10,6 @@ CREATE TABLE IF NOT EXISTS page (
 
 -- SEO
 CREATE TABLE IF NOT EXISTS seo (
-    id             SERIAL PRIMARY KEY,
     title          VARCHAR(255) NOT NULL,
     description    TEXT,
     keywords       TEXT,
@@ -21,8 +20,9 @@ CREATE TABLE IF NOT EXISTS seo (
     obj_pk         VARCHAR(255) NOT NULL,
 
     created_at     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+    updated_at     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (obj_name, obj_pk)
 );
 
-CREATE INDEX idx_seo_name ON seo (obj_name);
-CREATE INDEX idx_seo_pk ON seo (obj_pk);
+CREATE INDEX IF NOT EXISTS idx_seo_name ON seo (obj_name);
+CREATE INDEX IF NOT EXISTS idx_seo_pk ON seo (obj_pk);

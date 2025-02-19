@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	ctrl "github.com/JMURv/seo/internal/ctrl"
+	"github.com/JMURv/seo/internal/dto"
 	model "github.com/JMURv/seo/internal/models"
 	"github.com/JMURv/seo/tests/mocks"
 	"github.com/stretchr/testify/assert"
@@ -160,7 +161,7 @@ func TestHandler_CreatePage(t *testing.T) {
 		"Success", func(t *testing.T) {
 			mockCtrl.EXPECT().
 				CreatePage(gomock.Any(), reqData).
-				Return(slug, nil).
+				Return(&dto.CreatePageResponse{Slug: slug}, nil).
 				Times(1)
 
 			payload, _ := json.Marshal(reqData)
@@ -178,7 +179,7 @@ func TestHandler_CreatePage(t *testing.T) {
 		"ErrAlreadyExists", func(t *testing.T) {
 			mockCtrl.EXPECT().
 				CreatePage(gomock.Any(), reqData).
-				Return("", ctrl.ErrAlreadyExists).
+				Return(nil, ctrl.ErrAlreadyExists).
 				Times(1)
 
 			payload, _ := json.Marshal(reqData)
@@ -197,7 +198,7 @@ func TestHandler_CreatePage(t *testing.T) {
 			var ErrOther = errors.New("other error")
 			mockCtrl.EXPECT().
 				CreatePage(gomock.Any(), reqData).
-				Return("", ErrOther).
+				Return(nil, ErrOther).
 				Times(1)
 
 			payload, _ := json.Marshal(reqData)

@@ -23,7 +23,7 @@ func Apply(h http.HandlerFunc, middleware ...func(http.Handler) http.Handler) ht
 	}
 }
 
-func AuthMiddleware(sso sso.SSOSvc) func(http.Handler) http.Handler {
+func Auth(sso sso.SSOSvc) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(
 			func(w http.ResponseWriter, r *http.Request) {

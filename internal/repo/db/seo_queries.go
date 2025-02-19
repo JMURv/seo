@@ -1,7 +1,7 @@
 package db
 
 const getSEO = `
-SELECT id, title, description, keywords, og_title, og_description, og_image, obj_name, obj_pk, created_at, updated_at
+SELECT title, description, keywords, og_title, og_description, og_image, obj_name, obj_pk, created_at, updated_at
 FROM seo
 WHERE obj_name = $1 AND obj_pk = $2
 `
@@ -19,7 +19,7 @@ INSERT INTO seo (
 ) 
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 ON CONFLICT (obj_name, obj_pk) DO NOTHING
-RETURNING id
+RETURNING obj_name, obj_pk
 `
 
 const updateSEO = `

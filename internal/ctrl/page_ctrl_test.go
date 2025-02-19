@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/JMURv/seo/internal/config"
+	"github.com/JMURv/seo/internal/dto"
 	model "github.com/JMURv/seo/internal/models"
 	"github.com/JMURv/seo/internal/repo"
 	"github.com/JMURv/seo/tests/mocks"
@@ -142,7 +143,7 @@ func TestController_CreatePage(t *testing.T) {
 	ctx := context.Background()
 	ctrl := New(mockRepo, mockCache)
 
-	expected := "slug"
+	expected := &dto.CreatePageResponse{Slug: "slug"}
 	req := &model.Page{
 		Slug:  "slug",
 		Title: "title",
@@ -153,7 +154,7 @@ func TestController_CreatePage(t *testing.T) {
 		"Success", func(t *testing.T) {
 			mockRepo.EXPECT().
 				CreatePage(gomock.Any(), req).
-				Return(expected, nil).
+				Return("slug", nil).
 				Times(1)
 
 			res, err := ctrl.CreatePage(ctx, req)
@@ -164,30 +165,28 @@ func TestController_CreatePage(t *testing.T) {
 
 	t.Run(
 		"ErrAlreadyExists", func(t *testing.T) {
-			exp := ""
 			mockRepo.EXPECT().
 				CreatePage(gomock.Any(), req).
-				Return(exp, repo.ErrAlreadyExists).
+				Return("", repo.ErrAlreadyExists).
 				Times(1)
 
 			res, err := ctrl.CreatePage(ctx, req)
 			assert.IsType(t, ErrAlreadyExists, err)
-			assert.Equal(t, exp, res)
+			assert.Nil(t, res)
 		},
 	)
 
 	t.Run(
 		"ErrInternal", func(t *testing.T) {
-			exp := ""
 			newErr := errors.New("some error")
 			mockRepo.EXPECT().
 				CreatePage(gomock.Any(), req).
-				Return(exp, newErr).
+				Return("", newErr).
 				Times(1)
 
 			res, err := ctrl.CreatePage(ctx, req)
 			assert.IsType(t, newErr, err)
-			assert.Equal(t, exp, res)
+			assert.Nil(t, res)
 		},
 	)
 }

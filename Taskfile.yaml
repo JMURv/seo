@@ -16,6 +16,11 @@ tasks:
     cmds:
       - go build -o bin/main ./cmd/main.go
 
+  clean:
+    desc: Clean app
+    cmds:
+      - go clean -testcache
+
   lint:
     desc: Lint app
     cmds:
@@ -73,4 +78,4 @@ tasks:
   t-integ:
     desc: Run integration tests
     cmds:
-      - "go test ./tests/"
+      - "go test -v ./tests/E2E/..."

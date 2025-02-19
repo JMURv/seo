@@ -96,7 +96,7 @@ func (h *Handler) CreatePage(ctx context.Context, req *pb.PageMsg) (*pb.SlugSEO,
 		return nil, status.Errorf(c, hdl.ErrInternal.Error())
 	}
 	return &pb.SlugSEO{
-		Slug: res,
+		Slug: res.Slug,
 	}, nil
 }
 

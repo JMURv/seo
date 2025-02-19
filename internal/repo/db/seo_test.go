@@ -35,12 +35,11 @@ func TestRepository_GetSEO(t *testing.T) {
 
 	t.Run(
 		"Success case", func(t *testing.T) {
-			mock.ExpectQuery(getSEO).
+			mock.ExpectQuery(regexp.QuoteMeta(getSEO)).
 				WithArgs(name, pk).
 				WillReturnRows(
 					sqlmock.NewRows(
 						[]string{
-							"id",
 							"title",
 							"description",
 							"keywords",
@@ -52,24 +51,21 @@ func TestRepository_GetSEO(t *testing.T) {
 							"created_at",
 							"updated_at",
 						},
-					).
-						AddRow(
-							testOBJ.ID,
-							testOBJ.Title,
-							testOBJ.Description,
-							testOBJ.Keywords,
-							testOBJ.OGTitle,
-							testOBJ.OGDescription,
-							testOBJ.OGImage,
-							testOBJ.OBJName,
-							testOBJ.OBJPK,
-							testOBJ.CreatedAt,
-							testOBJ.UpdatedAt,
-						),
+					).AddRow(
+						testOBJ.Title,
+						testOBJ.Description,
+						testOBJ.Keywords,
+						testOBJ.OGTitle,
+						testOBJ.OGDescription,
+						testOBJ.OGImage,
+						testOBJ.OBJName,
+						testOBJ.OBJPK,
+						testOBJ.CreatedAt,
+						testOBJ.UpdatedAt,
+					),
 				)
 
 			result, err := repo.GetSEO(ctx, name, pk)
-
 			assert.NoError(t, err)
 			assert.NotNil(t, result)
 			assert.Equal(t, testOBJ.ID, result.ID)
@@ -82,7 +78,7 @@ func TestRepository_GetSEO(t *testing.T) {
 
 	t.Run(
 		"ErrNotFound", func(t *testing.T) {
-			mock.ExpectQuery(getSEO).
+			mock.ExpectQuery(regexp.QuoteMeta(getSEO)).
 				WithArgs(name, pk).
 				WillReturnError(sql.ErrNoRows)
 
@@ -98,7 +94,7 @@ func TestRepository_GetSEO(t *testing.T) {
 		"Unexpected error case", func(t *testing.T) {
 			notExpectedError := errors.New("not expected error")
 
-			mock.ExpectQuery(getSEO).
+			mock.ExpectQuery(regexp.QuoteMeta(getSEO)).
 				WithArgs(name, pk).
 				WillReturnError(notExpectedError)
 
@@ -138,13 +134,12 @@ func TestRepository_CreateSEO(t *testing.T) {
 		"Success case", func(t *testing.T) {
 			mock.ExpectQuery(
 				regexp.QuoteMeta(createSEO),
-			).
-				WillReturnRows(
-					sqlmock.NewRows([]string{"id"}).
-						AddRow(testOBJ.ID),
-				)
+			).WillReturnRows(
+				sqlmock.NewRows([]string{"obj_name", "obj_pk"}).
+					AddRow(testOBJ.OBJName, testOBJ.OBJPK),
+			)
 
-			_, err := repo.CreateSEO(ctx, testOBJ)
+			_, _, err := repo.CreateSEO(ctx, testOBJ)
 			assert.NoError(t, err)
 			err = mock.ExpectationsWereMet()
 			assert.NoError(t, err)
@@ -156,7 +151,7 @@ func TestRepository_CreateSEO(t *testing.T) {
 			mock.ExpectQuery(regexp.QuoteMeta(createSEO)).
 				WillReturnError(testErr)
 
-			_, err := repo.CreateSEO(ctx, testOBJ)
+			_, _, err := repo.CreateSEO(ctx, testOBJ)
 			assert.Equal(t, testErr, err)
 			err = mock.ExpectationsWereMet()
 			assert.NoError(t, err)
@@ -184,9 +179,9 @@ func TestRepository_UpdateSEO(t *testing.T) {
 	}
 
 	mock.ExpectQuery(regexp.QuoteMeta(createSEO)).
-		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(testOBJ.ID))
+		WillReturnRows(sqlmock.NewRows([]string{"obj_name", "obj_pk"}).AddRow(testOBJ.OBJName, testOBJ.OBJPK))
 
-	_, err = repo.CreateSEO(context.Background(), testOBJ)
+	_, _, err = repo.CreateSEO(context.Background(), testOBJ)
 	require.NoError(t, err)
 
 	t.Run(

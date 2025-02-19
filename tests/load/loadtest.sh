@@ -11,6 +11,7 @@ if ! command -v jq &> /dev/null; then
 fi
 
 # Конфигурация
+AUTH_URL="http://localhost:9090"
 BASE_URL="http://localhost:8080"
 RATE="100/s"        # RPS
 DURATION="30s"      # Длительность теста

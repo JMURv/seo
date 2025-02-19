@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/JMURv/seo/internal/config"
+	"github.com/JMURv/seo/internal/dto"
 	md "github.com/JMURv/seo/internal/models"
 	"github.com/JMURv/seo/internal/repo"
 	ot "github.com/opentracing/opentracing-go"
@@ -50,12 +51,12 @@ func (c *Controller) GetSEO(ctx context.Context, name, pk string) (*md.SEO, erro
 	return res, nil
 }
 
-func (c *Controller) CreateSEO(ctx context.Context, req *md.SEO) (uint64, error) {
+func (c *Controller) CreateSEO(ctx context.Context, req *md.SEO) (*dto.CreateSEOResponse, error) {
 	const op = "seo.CreateSEO.ctrl"
 	span, ctx := ot.StartSpanFromContext(ctx, op)
 	defer span.Finish()
 
-	res, err := c.repo.CreateSEO(ctx, req)
+	name, pk, err := c.repo.CreateSEO(ctx, req)
 	if err != nil && errors.Is(err, repo.ErrAlreadyExists) {
 		zap.L().Debug(
 			ErrAlreadyExists.Error(),
@@ -63,7 +64,7 @@ func (c *Controller) CreateSEO(ctx context.Context, req *md.SEO) (uint64, error)
 			zap.Any("req", req),
 			zap.Error(err),
 		)
-		return 0, ErrAlreadyExists
+		return nil, ErrAlreadyExists
 	} else if err != nil {
 		zap.L().Debug(
 			ErrInternal.Error(),
@@ -71,10 +72,13 @@ func (c *Controller) CreateSEO(ctx context.Context, req *md.SEO) (uint64, error)
 			zap.Any("req", req),
 			zap.Error(err),
 		)
-		return 0, err
+		return nil, err
 	}
 
-	return res, nil
+	return &dto.CreateSEOResponse{
+		Name: name,
+		PK:   pk,
+	}, nil
 }
 
 func (c *Controller) UpdateSEO(ctx context.Context, req *md.SEO) error {

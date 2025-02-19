@@ -21,7 +21,7 @@ func RegisterSEORoutes(mux *http.ServeMux, h *Handler) {
 		"/api/seo", func(w http.ResponseWriter, r *http.Request) {
 			switch r.Method {
 			case http.MethodPost:
-				middleware.Apply(h.CreateSEO, middleware.AuthMiddleware(h.sso))
+				middleware.Apply(h.CreateSEO, middleware.Auth(h.sso))(w, r)
 			default:
 				utils.ErrResponse(w, http.StatusMethodNotAllowed, ErrMethodNotAllowed)
 			}
@@ -34,9 +34,9 @@ func RegisterSEORoutes(mux *http.ServeMux, h *Handler) {
 			case http.MethodGet:
 				h.GetSEO(w, r)
 			case http.MethodPut:
-				middleware.Apply(h.UpdateSEO, middleware.AuthMiddleware(h.sso))
+				middleware.Apply(h.UpdateSEO, middleware.Auth(h.sso))(w, r)
 			case http.MethodDelete:
-				middleware.Apply(h.DeleteSEO, middleware.AuthMiddleware(h.sso))
+				middleware.Apply(h.DeleteSEO, middleware.Auth(h.sso))(w, r)
 			default:
 				utils.ErrResponse(w, http.StatusMethodNotAllowed, ErrMethodNotAllowed)
 			}

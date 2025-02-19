@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/JMURv/seo/internal/config"
+	"github.com/JMURv/seo/internal/dto"
 	"github.com/JMURv/seo/internal/models"
 	"github.com/JMURv/seo/internal/repo"
 	ot "github.com/opentracing/opentracing-go"
@@ -68,7 +69,7 @@ func (c *Controller) GetPage(ctx context.Context, slug string) (*models.Page, er
 	return res, nil
 }
 
-func (c *Controller) CreatePage(ctx context.Context, req *models.Page) (string, error) {
+func (c *Controller) CreatePage(ctx context.Context, req *models.Page) (*dto.CreatePageResponse, error) {
 	const op = "page.CreatePage.ctrl"
 	span, ctx := ot.StartSpanFromContext(ctx, op)
 	defer span.Finish()
@@ -81,7 +82,7 @@ func (c *Controller) CreatePage(ctx context.Context, req *models.Page) (string, 
 			zap.Any("req", req),
 			zap.Error(err),
 		)
-		return "", ErrAlreadyExists
+		return nil, ErrAlreadyExists
 	} else if err != nil {
 		zap.L().Debug(
 			ErrInternal.Error(),
@@ -89,10 +90,12 @@ func (c *Controller) CreatePage(ctx context.Context, req *models.Page) (string, 
 			zap.Any("req", req),
 			zap.Error(err),
 		)
-		return "", err
+		return nil, err
 	}
 
-	return res, nil
+	return &dto.CreatePageResponse{
+		Slug: res,
+	}, nil
 }
 
 func (c *Controller) UpdatePage(ctx context.Context, slug string, req *models.Page) error {

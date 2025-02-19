@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/JMURv/seo/internal/ctrl"
+	"github.com/JMURv/seo/internal/dto"
 	md "github.com/JMURv/seo/internal/models"
 	"github.com/JMURv/seo/tests/mocks"
 	"github.com/stretchr/testify/assert"
@@ -96,6 +97,7 @@ func TestHandler_GetSEO(t *testing.T) {
 }
 
 func TestHandler_CreateSEO(t *testing.T) {
+	const url = "/api/seo"
 	ctrlMock := gomock.NewController(t)
 	defer ctrlMock.Finish()
 
@@ -104,6 +106,7 @@ func TestHandler_CreateSEO(t *testing.T) {
 	h := New(mockCtrl, ssoCtrl)
 
 	ctx := context.Background()
+	var ErrOther = errors.New("other error")
 
 	reqData := &md.SEO{
 		Title:         "name",
@@ -116,205 +119,288 @@ func TestHandler_CreateSEO(t *testing.T) {
 		OBJPK:         "objpk",
 	}
 
-	t.Run(
-		"Success", func(t *testing.T) {
-			mockCtrl.EXPECT().
-				CreateSEO(gomock.Any(), reqData).
-				Return(uint64(1), nil).
-				Times(1)
-
-			payload, _ := json.Marshal(reqData)
-			req := httptest.NewRequest(http.MethodPost, "/api/seo", bytes.NewBuffer(payload))
-			req.Header.Set("Content-Type", "application/json")
-			req = req.WithContext(ctx)
-
-			w := httptest.NewRecorder()
-			h.CreateSEO(w, req)
-			assert.Equal(t, http.StatusCreated, w.Result().StatusCode)
+	tests := []struct {
+		ctx     context.Context
+		name    string
+		url     string
+		method  string
+		status  int
+		payload map[string]any
+		expect  func()
+	}{
+		{
+			name:   "ErrInternal",
+			url:    url,
+			method: http.MethodPost,
+			status: http.StatusInternalServerError,
+			payload: map[string]any{
+				"title":         reqData.Title,
+				"description":   reqData.Description,
+				"keywords":      reqData.Keywords,
+				"OGTitle":       reqData.OGTitle,
+				"OGDescription": reqData.OGDescription,
+				"OGImage":       reqData.OGImage,
+				"obj_name":      reqData.OBJName,
+				"obj_pk":        reqData.OBJPK,
+			},
+			expect: func() {
+				mockCtrl.EXPECT().
+					CreateSEO(gomock.Any(), reqData).
+					Return(nil, ErrOther).
+					Times(1)
+			},
 		},
-	)
-
-	t.Run(
-		"ErrAlreadyExists", func(t *testing.T) {
-			mockCtrl.EXPECT().
-				CreateSEO(gomock.Any(), reqData).
-				Return(uint64(0), ctrl.ErrAlreadyExists).
-				Times(1)
-
-			payload, _ := json.Marshal(reqData)
-			req := httptest.NewRequest(http.MethodPost, "/api/seo", bytes.NewBuffer(payload))
-			req.Header.Set("Content-Type", "application/json")
-			req = req.WithContext(ctx)
-
-			w := httptest.NewRecorder()
-			h.CreateSEO(w, req)
-			assert.Equal(t, http.StatusConflict, w.Result().StatusCode)
+		{
+			name:   "MissingTitle",
+			url:    url,
+			method: http.MethodPost,
+			status: http.StatusBadRequest,
+			payload: map[string]any{
+				"title":         "",
+				"description":   reqData.Description,
+				"keywords":      reqData.Keywords,
+				"OGTitle":       reqData.OGTitle,
+				"OGDescription": reqData.OGDescription,
+				"OGImage":       reqData.OGImage,
+				"obj_name":      reqData.OBJName,
+				"obj_pk":        reqData.OBJPK,
+			},
+			expect: func() {},
 		},
-	)
-
-	t.Run(
-		"ErrInternalError", func(t *testing.T) {
-			var ErrOther = errors.New("other error")
-			mockCtrl.EXPECT().
-				CreateSEO(gomock.Any(), reqData).
-				Return(uint64(0), ErrOther).
-				Times(1)
-
-			payload, _ := json.Marshal(reqData)
-			req := httptest.NewRequest(http.MethodPost, "/api/seo", bytes.NewBuffer(payload))
-			req.Header.Set("Content-Type", "application/json")
-			req = req.WithContext(ctx)
-
-			w := httptest.NewRecorder()
-			h.CreateSEO(w, req)
-			assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
+		{
+			name:   "ErrDecodeRequest",
+			url:    url,
+			method: http.MethodPost,
+			status: http.StatusBadRequest,
+			payload: map[string]any{
+				"title":         0,
+				"description":   reqData.Description,
+				"keywords":      reqData.Keywords,
+				"OGTitle":       reqData.OGTitle,
+				"OGDescription": reqData.OGDescription,
+				"OGImage":       reqData.OGImage,
+				"obj_name":      reqData.OBJName,
+				"obj_pk":        reqData.OBJPK,
+			},
+			expect: func() {},
 		},
-	)
-
-	t.Run(
-		"ErrDecodeRequest - Missing Title", func(t *testing.T) {
-			reqData.Title = ""
-			payload, _ := json.Marshal(reqData)
-			req := httptest.NewRequest(http.MethodPost, "/api/seo", bytes.NewBuffer(payload))
-			req.Header.Set("Content-Type", "application/json")
-			req = req.WithContext(ctx)
-
-			w := httptest.NewRecorder()
-			h.CreateSEO(w, req)
-			assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+		{
+			name:   "ErrAlreadyExists",
+			url:    url,
+			method: http.MethodPost,
+			status: http.StatusConflict,
+			payload: map[string]any{
+				"title":         reqData.Title,
+				"description":   reqData.Description,
+				"keywords":      reqData.Keywords,
+				"OGTitle":       reqData.OGTitle,
+				"OGDescription": reqData.OGDescription,
+				"OGImage":       reqData.OGImage,
+				"obj_name":      reqData.OBJName,
+				"obj_pk":        reqData.OBJPK,
+			},
+			expect: func() {
+				mockCtrl.EXPECT().
+					CreateSEO(gomock.Any(), reqData).
+					Return(nil, ctrl.ErrAlreadyExists).
+					Times(1)
+			},
 		},
-	)
-
-	t.Run(
-		"Invalid JSON", func(t *testing.T) {
-			payload, _ := json.Marshal(map[string]any{"title": 123})
-			req := httptest.NewRequest(http.MethodPost, "/api/seo", bytes.NewBuffer(payload))
-			req.Header.Set("Content-Type", "application/json")
-			req = req.WithContext(ctx)
-
-			w := httptest.NewRecorder()
-			h.CreateSEO(w, req)
-			assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+		{
+			name:   "Success",
+			url:    url,
+			method: http.MethodPost,
+			status: http.StatusCreated,
+			payload: map[string]any{
+				"title":         reqData.Title,
+				"description":   reqData.Description,
+				"keywords":      reqData.Keywords,
+				"OGTitle":       reqData.OGTitle,
+				"OGDescription": reqData.OGDescription,
+				"OGImage":       reqData.OGImage,
+				"obj_name":      reqData.OBJName,
+				"obj_pk":        reqData.OBJPK,
+			},
+			expect: func() {
+				mockCtrl.EXPECT().
+					CreateSEO(gomock.Any(), reqData).
+					Return(
+						&dto.CreateSEOResponse{
+							Name: "name",
+							PK:   "pk",
+						}, nil,
+					).
+					Times(1)
+			},
 		},
-	)
+	}
+
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				tt.expect()
+
+				payload, err := json.Marshal(tt.payload)
+				assert.Nil(t, err)
+
+				req := httptest.NewRequestWithContext(ctx, tt.method, tt.url, bytes.NewBuffer(payload))
+				req.Header.Set("Content-Type", "application/json")
+
+				w := httptest.NewRecorder()
+				h.CreateSEO(w, req)
+				assert.Equal(t, tt.status, w.Result().StatusCode)
+			},
+		)
+	}
 }
 
 func TestHandler_UpdateSEO(t *testing.T) {
+	const url = "/api/seo/test-name/1"
 	ctrlMock := gomock.NewController(t)
 	defer ctrlMock.Finish()
 
-	const url = "/api/seo/test-name/1"
 	mockCtrl := mocks.NewMockAppCtrl(ctrlMock)
 	ssoCtrl := mocks.NewMockSSOSvc(ctrlMock)
 	h := New(mockCtrl, ssoCtrl)
 
 	ctx := context.Background()
+	var ErrOther = errors.New("other error")
 
 	reqData := &md.SEO{
 		Title:         "name",
 		Description:   "description",
 		Keywords:      "keywords",
 		OGTitle:       "ogtitle",
-		OGDescription: "ogdescription",
+		OGDescription: "OGDescription",
 		OGImage:       "ogimage",
 		OBJName:       "test-name",
 		OBJPK:         "1",
 	}
 
-	t.Run(
-		"Success", func(t *testing.T) {
-			mockCtrl.EXPECT().
-				UpdateSEO(gomock.Any(), reqData).
-				Return(nil).
-				Times(1)
-
-			payload, _ := json.Marshal(reqData)
-			req := httptest.NewRequest(http.MethodPut, url, bytes.NewBuffer(payload))
-			req.Header.Set("Content-Type", "application/json")
-			req = req.WithContext(ctx)
-
-			w := httptest.NewRecorder()
-			h.UpdateSEO(w, req)
-			assert.Equal(t, http.StatusOK, w.Result().StatusCode)
+	tests := []struct {
+		ctx     context.Context
+		name    string
+		url     string
+		method  string
+		status  int
+		payload map[string]any
+		expect  func()
+	}{
+		{
+			name:   "Success",
+			url:    url,
+			method: http.MethodPut,
+			status: http.StatusOK,
+			payload: map[string]any{
+				"title":         reqData.Title,
+				"description":   reqData.Description,
+				"keywords":      reqData.Keywords,
+				"OGTitle":       reqData.OGTitle,
+				"OGDescription": reqData.OGDescription,
+				"OGImage":       reqData.OGImage,
+				"obj_name":      reqData.OBJName,
+				"obj_pk":        reqData.OBJPK,
+			},
+			expect: func() {
+				mockCtrl.EXPECT().
+					UpdateSEO(gomock.Any(), reqData).
+					Return(nil).
+					Times(1)
+			},
 		},
-	)
-
-	t.Run(
-		"Missing name or pk", func(t *testing.T) {
-			payload, _ := json.Marshal(reqData)
-			req := httptest.NewRequest(http.MethodPut, "/api/seo/test-name/", bytes.NewBuffer(payload))
-			req.Header.Set("Content-Type", "application/json")
-			req = req.WithContext(ctx)
-
-			w := httptest.NewRecorder()
-			h.UpdateSEO(w, req)
-			assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+		{
+			name:   "Missing name or pk",
+			url:    "/api/seo/test-name/",
+			method: http.MethodPut,
+			status: http.StatusBadRequest,
+			payload: map[string]any{
+				"title": reqData.Title,
+			},
+			expect: func() {},
 		},
-	)
-
-	t.Run(
-		"ErrNotFound", func(t *testing.T) {
-			mockCtrl.EXPECT().
-				UpdateSEO(gomock.Any(), reqData).
-				Return(ctrl.ErrNotFound).
-				Times(1)
-
-			payload, _ := json.Marshal(reqData)
-			req := httptest.NewRequest(http.MethodPut, url, bytes.NewBuffer(payload))
-			req.Header.Set("Content-Type", "application/json")
-			req = req.WithContext(ctx)
-
-			w := httptest.NewRecorder()
-			h.UpdateSEO(w, req)
-			assert.Equal(t, http.StatusNotFound, w.Result().StatusCode)
+		{
+			name:   "ErrNotFound",
+			url:    url,
+			method: http.MethodPut,
+			status: http.StatusNotFound,
+			payload: map[string]any{
+				"title":         reqData.Title,
+				"description":   reqData.Description,
+				"keywords":      reqData.Keywords,
+				"OGTitle":       reqData.OGTitle,
+				"OGDescription": reqData.OGDescription,
+				"OGImage":       reqData.OGImage,
+				"obj_name":      reqData.OBJName,
+				"obj_pk":        reqData.OBJPK,
+			},
+			expect: func() {
+				mockCtrl.EXPECT().
+					UpdateSEO(gomock.Any(), reqData).
+					Return(ctrl.ErrNotFound).
+					Times(1)
+			},
 		},
-	)
-
-	t.Run(
-		"ErrInternalError", func(t *testing.T) {
-			var ErrOther = errors.New("other error")
-			mockCtrl.EXPECT().
-				UpdateSEO(gomock.Any(), reqData).
-				Return(ErrOther).
-				Times(1)
-
-			payload, _ := json.Marshal(reqData)
-			req := httptest.NewRequest(http.MethodPut, url, bytes.NewBuffer(payload))
-			req.Header.Set("Content-Type", "application/json")
-			req = req.WithContext(ctx)
-
-			w := httptest.NewRecorder()
-			h.UpdateSEO(w, req)
-			assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
+		{
+			name:   "ErrInternal",
+			url:    url,
+			method: http.MethodPut,
+			status: http.StatusInternalServerError,
+			payload: map[string]any{
+				"title":         reqData.Title,
+				"description":   reqData.Description,
+				"keywords":      reqData.Keywords,
+				"OGTitle":       reqData.OGTitle,
+				"OGDescription": reqData.OGDescription,
+				"OGImage":       reqData.OGImage,
+				"obj_name":      reqData.OBJName,
+				"obj_pk":        reqData.OBJPK,
+			},
+			expect: func() {
+				mockCtrl.EXPECT().
+					UpdateSEO(gomock.Any(), reqData).
+					Return(ErrOther).
+					Times(1)
+			},
 		},
-	)
-
-	t.Run(
-		"ErrDecodeRequest - Missing Title", func(t *testing.T) {
-			reqData.Title = ""
-			payload, _ := json.Marshal(reqData)
-			req := httptest.NewRequest(http.MethodPut, url, bytes.NewBuffer(payload))
-			req.Header.Set("Content-Type", "application/json")
-			req = req.WithContext(ctx)
-
-			w := httptest.NewRecorder()
-			h.UpdateSEO(w, req)
-			assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+		{
+			name:   "Validation Error",
+			url:    url,
+			method: http.MethodPut,
+			status: http.StatusBadRequest,
+			payload: map[string]any{
+				"title": "",
+			},
+			expect: func() {},
 		},
-	)
-
-	t.Run(
-		"Invalid JSON", func(t *testing.T) {
-			payload, _ := json.Marshal(map[string]any{"title": 123})
-			req := httptest.NewRequest(http.MethodPut, url, bytes.NewBuffer(payload))
-			req.Header.Set("Content-Type", "application/json")
-			req = req.WithContext(ctx)
-
-			w := httptest.NewRecorder()
-			h.UpdateSEO(w, req)
-			assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+		{
+			name:   "ErrDecodeRequest",
+			url:    url,
+			method: http.MethodPut,
+			status: http.StatusBadRequest,
+			payload: map[string]any{
+				"title": 123,
+			},
+			expect: func() {},
 		},
-	)
+	}
+
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				tt.expect()
+
+				payload, err := json.Marshal(tt.payload)
+				assert.Nil(t, err)
+
+				req := httptest.NewRequestWithContext(ctx, tt.method, tt.url, bytes.NewBuffer(payload))
+				req.Header.Set("Content-Type", "application/json")
+
+				w := httptest.NewRecorder()
+				h.UpdateSEO(w, req)
+				assert.Equal(t, tt.status, w.Result().StatusCode)
+			},
+		)
+	}
 }
 
 func TestHandler_DeleteSEO(t *testing.T) {
@@ -328,68 +414,73 @@ func TestHandler_DeleteSEO(t *testing.T) {
 
 	ctx := context.Background()
 	name, pk := "name", "pk"
+	ErrOther := errors.New("other error")
 
-	t.Run(
-		"Success", func(t *testing.T) {
-			mockCtrl.EXPECT().
-				DeleteSEO(gomock.Any(), name, pk).
-				Return(nil).
-				Times(1)
-
-			req := httptest.NewRequest(http.MethodDelete, url, nil)
-			req.Header.Set("Content-Type", "application/json")
-			req = req.WithContext(ctx)
-
-			w := httptest.NewRecorder()
-			h.DeleteSEO(w, req)
-			assert.Equal(t, http.StatusNoContent, w.Result().StatusCode)
+	tests := []struct {
+		ctx    context.Context
+		name   string
+		url    string
+		method string
+		status int
+		expect func()
+	}{
+		{
+			name:   "Success",
+			url:    url,
+			method: http.MethodDelete,
+			status: http.StatusNoContent,
+			expect: func() {
+				mockCtrl.EXPECT().
+					DeleteSEO(gomock.Any(), name, pk).
+					Return(nil).
+					Times(1)
+			},
 		},
-	)
-
-	t.Run(
-		"Missing name or pk", func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodDelete, "/api/seo/test-name/", nil)
-			req.Header.Set("Content-Type", "application/json")
-			req = req.WithContext(ctx)
-
-			w := httptest.NewRecorder()
-			h.DeleteSEO(w, req)
-			assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+		{
+			name:   "Missing name or pk",
+			url:    "/api/seo/test-name/",
+			method: http.MethodDelete,
+			status: http.StatusBadRequest,
+			expect: func() {},
 		},
-	)
-
-	t.Run(
-		"ErrNotFound", func(t *testing.T) {
-			mockCtrl.EXPECT().
-				DeleteSEO(gomock.Any(), name, pk).
-				Return(ctrl.ErrNotFound).
-				Times(1)
-
-			req := httptest.NewRequest(http.MethodDelete, url, nil)
-			req.Header.Set("Content-Type", "application/json")
-			req = req.WithContext(ctx)
-
-			w := httptest.NewRecorder()
-			h.DeleteSEO(w, req)
-			assert.Equal(t, http.StatusNotFound, w.Result().StatusCode)
+		{
+			name:   "ErrNotFound",
+			url:    url,
+			method: http.MethodDelete,
+			status: http.StatusNotFound,
+			expect: func() {
+				mockCtrl.EXPECT().
+					DeleteSEO(gomock.Any(), name, pk).
+					Return(ctrl.ErrNotFound).
+					Times(1)
+			},
 		},
-	)
-
-	t.Run(
-		"ErrInternalError", func(t *testing.T) {
-			var ErrOther = errors.New("other error")
-			mockCtrl.EXPECT().
-				DeleteSEO(gomock.Any(), name, pk).
-				Return(ErrOther).
-				Times(1)
-
-			req := httptest.NewRequest(http.MethodDelete, url, nil)
-			req.Header.Set("Content-Type", "application/json")
-			req = req.WithContext(ctx)
-
-			w := httptest.NewRecorder()
-			h.DeleteSEO(w, req)
-			assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
+		{
+			name:   "ErrInternal",
+			url:    url,
+			method: http.MethodDelete,
+			status: http.StatusInternalServerError,
+			expect: func() {
+				mockCtrl.EXPECT().
+					DeleteSEO(gomock.Any(), name, pk).
+					Return(ErrOther).
+					Times(1)
+			},
 		},
-	)
+	}
+
+	for _, tt := range tests {
+		t.Run(
+			tt.name, func(t *testing.T) {
+				tt.expect()
+
+				req := httptest.NewRequestWithContext(ctx, tt.method, tt.url, nil)
+				req.Header.Set("Content-Type", "application/json")
+
+				w := httptest.NewRecorder()
+				h.DeleteSEO(w, req)
+				assert.Equal(t, tt.status, w.Result().StatusCode)
+			},
+		)
+	}
 }

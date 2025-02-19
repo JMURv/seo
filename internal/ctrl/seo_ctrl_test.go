@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/JMURv/seo/internal/config"
+	"github.com/JMURv/seo/internal/dto"
 	model "github.com/JMURv/seo/internal/models"
 	repo "github.com/JMURv/seo/internal/repo"
 	"github.com/JMURv/seo/tests/mocks"
@@ -128,9 +129,7 @@ func TestController_CreateSEO(t *testing.T) {
 
 	ctx := context.Background()
 	ctrl := New(mockRepo, mockCache)
-
 	name, pk := "name", "pk"
-	expected := uint64(1)
 
 	req := &model.SEO{
 		Title:         "title",
@@ -147,41 +146,44 @@ func TestController_CreateSEO(t *testing.T) {
 		"Success", func(t *testing.T) {
 			mockRepo.EXPECT().
 				CreateSEO(gomock.Any(), req).
-				Return(uint64(1), nil).
+				Return(name, pk, nil).
 				Times(1)
 
 			res, err := ctrl.CreateSEO(ctx, req)
 			assert.Nil(t, err)
-			assert.Equal(t, expected, res)
+			assert.Equal(
+				t, &dto.CreateSEOResponse{
+					Name: name,
+					PK:   pk,
+				}, res,
+			)
 		},
 	)
 
 	t.Run(
 		"ErrAlreadyExists", func(t *testing.T) {
-			exp := uint64(0)
 			mockRepo.EXPECT().
 				CreateSEO(gomock.Any(), req).
-				Return(exp, repo.ErrAlreadyExists).
+				Return("", "", repo.ErrAlreadyExists).
 				Times(1)
 
 			res, err := ctrl.CreateSEO(ctx, req)
 			assert.IsType(t, ErrAlreadyExists, err)
-			assert.Equal(t, exp, res)
+			assert.Nil(t, res)
 		},
 	)
 
 	t.Run(
 		"ErrInternal", func(t *testing.T) {
-			exp := uint64(0)
 			newErr := errors.New("some error")
 			mockRepo.EXPECT().
 				CreateSEO(gomock.Any(), req).
-				Return(exp, newErr).
+				Return("", "", newErr).
 				Times(1)
 
 			res, err := ctrl.CreateSEO(ctx, req)
 			assert.IsType(t, newErr, err)
-			assert.Equal(t, exp, res)
+			assert.Nil(t, res)
 		},
 	)
 }

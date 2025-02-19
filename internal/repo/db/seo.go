@@ -16,7 +16,6 @@ func (r *Repository) GetSEO(ctx context.Context, name, pk string) (*md.SEO, erro
 	res := &md.SEO{}
 	err := r.conn.QueryRowContext(ctx, getSEO, name, pk).
 		Scan(
-			&res.ID,
 			&res.Title,
 			&res.Description,
 			&res.Keywords,
@@ -38,12 +37,12 @@ func (r *Repository) GetSEO(ctx context.Context, name, pk string) (*md.SEO, erro
 	return res, nil
 }
 
-func (r *Repository) CreateSEO(ctx context.Context, req *md.SEO) (uint64, error) {
+func (r *Repository) CreateSEO(ctx context.Context, req *md.SEO) (string, string, error) {
 	const op = "seo.CreateSEO.repo"
 	span, ctx := ot.StartSpanFromContext(ctx, op)
 	defer span.Finish()
 
-	var id uint64
+	var name, pk string
 	err := r.conn.QueryRowContext(
 		ctx,
 		createSEO,
@@ -55,15 +54,15 @@ func (r *Repository) CreateSEO(ctx context.Context, req *md.SEO) (uint64, error)
 		req.OGImage,
 		req.OBJName,
 		req.OBJPK,
-	).Scan(&id)
+	).Scan(&name, &pk)
 
 	if err == sql.ErrNoRows {
-		return 0, repo.ErrAlreadyExists
+		return "", "", repo.ErrAlreadyExists
 	} else if err != nil {
-		return 0, err
+		return "", "", err
 	}
 
-	return id, nil
+	return name, pk, nil
 }
 
 func (r *Repository) UpdateSEO(ctx context.Context, req *md.SEO) error {
