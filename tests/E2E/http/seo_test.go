@@ -2,11 +2,12 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"fmt"
 	model "github.com/JMURv/seo/internal/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/mock/gomock"
 	"go.uber.org/zap"
 	"io"
 	"net/http"
@@ -14,13 +15,14 @@ import (
 )
 
 func TestSEO(t *testing.T) {
-	server, sso, cleanup := setupTestServer(t)
+	server, authReq, cleanup := setupTestServer()
 	t.Cleanup(cleanup)
 	t.Cleanup(server.Close)
 
 	name, pk := "page", "slug"
+	tokenRes := authReq(context.Background(), "admin@example.com", "superstrongpassword")
 	headers := map[string]string{
-		"Authorization": "Bearer valid-token",
+		"Authorization": fmt.Sprintf("Bearer %v", tokenRes),
 	}
 
 	getSEO := func(objName, objPK string) *model.SEO {
@@ -43,8 +45,6 @@ func TestSEO(t *testing.T) {
 	}
 
 	createSEO := func(seo *model.SEO, headers map[string]string) {
-		sso.EXPECT().ParseClaims(gomock.Any(), gomock.Any()).Return("token", nil)
-
 		payload, err := json.Marshal(seo)
 		require.NoError(t, err)
 
@@ -67,8 +67,6 @@ func TestSEO(t *testing.T) {
 	}
 
 	updateSEO := func(objName, objPK string, seo *model.SEO, headers map[string]string) {
-		sso.EXPECT().ParseClaims(gomock.Any(), gomock.Any()).Return("token", nil)
-
 		payload, err := json.Marshal(seo)
 		require.NoError(t, err)
 
@@ -91,8 +89,6 @@ func TestSEO(t *testing.T) {
 	}
 
 	deleteSEO := func(objName, objPK string, headers map[string]string) {
-		sso.EXPECT().ParseClaims(gomock.Any(), gomock.Any()).Return("token", nil)
-
 		req, err := http.NewRequest(http.MethodDelete, server.URL+"/api/seo/"+objName+"/"+objPK, nil)
 		require.NoError(t, err)
 

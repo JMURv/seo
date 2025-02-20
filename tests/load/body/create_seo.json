@@ -1,0 +1,10 @@
+{
+  "title": "title",
+  "description":  "description",
+  "keywords": "kw, kw1",
+  "OGTitle":  "OGTitle",
+  "OGDescription": "OGDescription",
+  "OGImage":  "OGImage",
+  "obj_name": "page",
+  "obj_pk":  "test-slug"
+}

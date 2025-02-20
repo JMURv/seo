@@ -1,0 +1,16 @@
+[
+  {
+    "name": "JMURv",
+    "password": "superstrongpassword",
+    "email": "admin@example.com",
+    "avatar": "avatar/path",
+    "address":"Moscow",
+    "phone": "123-123-123",
+    "permissions": [
+      {
+        "name": "admin",
+        "value": true
+      }
+    ]
+  }
+]

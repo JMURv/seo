@@ -1,0 +1,40 @@
+serviceName: "sso"
+srv_discovery:
+  scheme: "http"
+  host: "localhost"
+  port: 50030
+
+server:
+  mode: "dev"
+  port: 50050
+  scheme: "http"
+  domain: "localhost"
+
+auth:
+  secret: "o$$4ZTnOe@wnR!7@!5t#6EqsXq2oXi16r4cZf%$Nq#x66u!uM8867tRz3y0Z"
+
+email:
+  server: "smtp.gmail.com"
+  port: 587
+  user: "unona.tech@gmail.com"
+  pass: "cghmcvxcgkaunvft"
+  admin: "jmurvz@gmail.com"
+
+db:
+  host: "db_sso"
+  port: 5432
+  user: "sso_owner"
+  password: "superstrongpassword"
+  database: "sso"
+
+redis:
+  addr: "redis:6379"
+  pass: ""
+
+jaeger:
+  sampler:
+    type: "const"
+    param: 1
+  reporter:
+    LogSpans: true
+    LocalAgentHostPort: "jaeger:6831"

@@ -1,0 +1,66 @@
+services:
+  redis:
+    container_name: redis
+    restart: always
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  db:
+    container_name: db
+    image: postgres:15.0-alpine
+    restart: always
+    environment:
+      - POSTGRES_DB=${PG_APP_DB}
+      - POSTGRES_USER=${PG_APP_USER}
+      - POSTGRES_PASSWORD=${PG_APP_PASSWORD}
+      - POSTGRES_HOST=${PG_APP_HOST}
+      - POSTGRES_PORT=${PG_APP_PORT}
+    ports:
+      - "${PG_APP_PORT}:5432"
+    healthcheck:
+      test: 'psql -w -U ${PG_APP_USER} -d ${PG_APP_DB} -h localhost -c "SELECT 1"'
+      interval: 5s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+
+  db_sso:
+    container_name: db_sso
+    image: postgres:15.0-alpine
+    restart: always
+    environment:
+      - POSTGRES_DB=${PG_SSO_DB}
+      - POSTGRES_USER=${PG_SSO_USER}
+      - POSTGRES_PASSWORD=${PG_SSO_PASSWORD}
+      - POSTGRES_HOST=${PG_SSO_HOST}
+      - POSTGRES_PORT=${PG_SSO_PORT}
+    ports:
+      - "${PG_SSO_PORT}:5432"
+    healthcheck:
+      test: 'psql -w -U ${PG_SSO_USER} -d ${PG_SSO_DB} -h localhost -c "SELECT 1"'
+      interval: 5s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+
+  sso:
+    container_name: sso
+    image: jmurv/sso:latest
+    restart: always
+    volumes:
+      - ./sso/test.config.yaml:/app/local.config.yaml
+      - ./sso/precreate/admin.json:/app/precreate.json
+    ports:
+      - "${SSO_PORT}:${SSO_PORT}"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:${SSO_PORT}/health" ]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      db_sso:
+        condition: service_healthy
+        restart: true
+      redis:
+        condition: service_started

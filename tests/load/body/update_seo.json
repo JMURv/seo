@@ -1,0 +1,10 @@
+{
+  "title": "UPDATED title",
+  "description":  "UPDATEDdescription",
+  "keywords": "kw, kw1",
+  "OGTitle":  "UPDATED OGTitle",
+  "OGDescription": "UPDATED OGDescription",
+  "OGImage":  "UPDATED OGImage",
+  "obj_name": "page",
+  "obj_pk":  "test-slug"
+}

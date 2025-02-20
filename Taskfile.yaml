@@ -79,3 +79,13 @@ tasks:
     desc: Run integration tests
     cmds:
       - "go test -v ./tests/E2E/..."
+
+  t-load:
+    desc: Start load testing
+    cmds:
+      - ./tests/load/start.sh
+
+  t-loadb:
+    desc: Build get token script for load testing
+    cmds:
+      - go build -o ./tests/load/scripts/get_token ./tests/load/scripts/get_token.go

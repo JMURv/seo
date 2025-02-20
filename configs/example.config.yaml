@@ -3,7 +3,7 @@ serviceName: "svc-name"
 
 services:
   sso:
-    port: 50030
+    port: 50050
     scheme: "http"
     domain: "localhost"
 

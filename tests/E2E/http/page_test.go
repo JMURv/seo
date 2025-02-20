@@ -2,12 +2,13 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/JMURv/seo/internal/dto"
 	model "github.com/JMURv/seo/internal/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/mock/gomock"
 	"go.uber.org/zap"
 	"io"
 	"net/http"
@@ -15,12 +16,13 @@ import (
 )
 
 func TestPages(t *testing.T) {
-	server, sso, cleanup := setupTestServer(t)
+	server, authReq, cleanup := setupTestServer()
 	t.Cleanup(cleanup)
 	t.Cleanup(server.Close)
 
+	tokenRes := authReq(context.Background(), "admin@example.com", "superstrongpassword")
 	headers := map[string]string{
-		"Authorization": "Bearer valid-token",
+		"Authorization": fmt.Sprintf("Bearer %v", tokenRes),
 	}
 
 	listPages := func() []model.Page {
@@ -60,8 +62,6 @@ func TestPages(t *testing.T) {
 	}
 
 	createPage := func(page *model.Page, headers map[string]string) *dto.CreatePageResponse {
-		sso.EXPECT().ParseClaims(gomock.Any(), gomock.Any()).Return("token", nil)
-
 		payload, err := json.Marshal(page)
 		require.NoError(t, err)
 
@@ -88,8 +88,6 @@ func TestPages(t *testing.T) {
 	}
 
 	updatePage := func(slug string, page *model.Page, headers map[string]string) {
-		sso.EXPECT().ParseClaims(gomock.Any(), gomock.Any()).Return("token", nil)
-
 		payload, err := json.Marshal(page)
 		require.NoError(t, err)
 
@@ -112,8 +110,6 @@ func TestPages(t *testing.T) {
 	}
 
 	deletePage := func(slug string, headers map[string]string) {
-		sso.EXPECT().ParseClaims(gomock.Any(), gomock.Any()).Return("token", nil)
-
 		req, err := http.NewRequest(http.MethodDelete, server.URL+"/api/page/"+slug, nil)
 		require.NoError(t, err)
 
